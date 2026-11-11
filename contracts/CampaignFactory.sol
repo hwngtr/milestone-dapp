@@ -36,7 +36,7 @@ contract CampaignFactory is ICampaignFactory {
     ///         `msg.value` must equal `creationDeposit` exactly.
     function createCampaign(
         string calldata title,
-        string calldata _metadataURI, // event-only: files live in R2, hashes on-chain
+        string calldata, // metadataURI: accepted for interface compatibility; not stored or emitted
         uint96 goal,
         uint64 deadline,
         uint96[] calldata milestoneAmounts,

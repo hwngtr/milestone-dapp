@@ -30,17 +30,16 @@ interface ICampaign {
     event RefundClaimed(address indexed donor, uint256 amount);
     event Withdrawn(address indexed payee, uint256 amount);
     event CampaignFailed(uint256 totalRaised);
-    event CampaignActivated(uint256 totalRaised);  // added Week 3: the indexer needs the goal-met transition
-    event CampaignCompleted(uint256 totalPaidToCreator); // added Week 3: deposit returns to the creator here
+    event CampaignActivated(uint256 totalRaised);
+    event CampaignCompleted(uint256 totalPaidToCreator);
 
     // ---------------------------------------------------------------- errors
-    error DeadlinePassed();
     error DeadlineNotReached();
-    error GoalNotReached();
     error GoalAlreadyReached();
     error NotCreator();
     error NotDonor();
     error MilestoneNotDelivered();
+    error MilestoneAlreadyDelivered(uint8 milestoneId);
     error MilestoneAlreadyReleased();
     error MilestoneAlreadyObjected(uint8 milestoneId);
     error UnknownMilestone(uint8 milestoneId);
@@ -48,7 +47,6 @@ interface ICampaign {
     error ChallengeWindowClosed();
     error WrongStatus(Status current);
     error NothingToWithdraw();
-    error AlreadyClaimed();
     error AlreadyInitialized();
     error TransferFailed();
     error ZeroAmount();
@@ -69,8 +67,8 @@ interface ICampaign {
     /// @notice Donor signals that a delivered milestone should not be paid. Weight is the donor's
     ///         contribution, fixed at funding time. When the objection quorum is reached, the
     ///         milestone is vetoed and the campaign is canceled: every donor may claim a full
-    ///         refund, and no milestone pays. The veto is deliberately blunt — it is cheap to
-    ///         implement without an oracle, and it makes frivolous objections socially expensive.
+    ///         refund, and no milestone pays. The veto is deliberately blunt: it needs no oracle,
+    ///         and it makes frivolous objections socially expensive.
     /// @dev Quorum = a majority of the money: `totalRaised / 2 + 1` wei of objection weight.
     ///         Derived from `totalRaised` at veto time; never stored, never configured.
     function object(uint8 milestoneId) external;
@@ -81,18 +79,20 @@ interface ICampaign {
     function release(uint8 milestoneId) external;
 
     // ---------------------------------------------------------------- payouts
-    /// @notice Donor withdraws their contribution from a failed or canceled campaign. Repeatable
-    ///         in principle, idempotent in effect.
+    /// @notice Donor withdraws their exact contribution from a failed or canceled campaign.
+    ///         Repeatable in principle, idempotent in effect: the second call reverts and
+    ///         nothing moves.
     function claimRefund() external;
 
-    /// @notice Pull accumulated credit (creator after releases, donor after refunds).
+    /// @notice Pull accumulated creator credit: released milestone amounts plus the returned
+    ///         creation deposit. Pull-over-push: the contract never pushes ETH to the creator,
+    ///         so a hostile creator contract cannot re-enter anything.
     function withdraw() external;
 
     // ------------------------------------------------------------------ views
     /// @notice Materializes the outcome at or after the deadline. Anyone may call it: the caller
-    ///         has no discretion, so no privileged caller is needed. Added Week 3 so the
-    ///         indexer receives the Funding → Active/Failed event even when no other
-    ///         transaction happens.
+    ///         has no discretion, so no privileged caller is needed. The indexer receives the
+    ///         Funding → Active/Failed event even when no donor or creator acts.
     function finalizeOutcome() external;
 
     function status() external view returns (Status);

@@ -104,16 +104,8 @@ contract Campaign is ICampaign {
         if (status != ICampaign.Status.Active) revert WrongStatus(status);
         if (milestoneId >= milestones.length) revert UnknownMilestone(milestoneId);
         Milestone storage m = milestones[milestoneId];
-        if (m.mStatus == ICampaign.MilestoneStatus.Pending) {
-            // deliverable
-        } else if (
-            m.mStatus == ICampaign.MilestoneStatus.ChallengeWindow
-                && block.timestamp < uint64(m.deliveredAt) + challengeWindow
-        ) {
-            revert ChallengeWindowOpen();
-        } else {
-            // window expired awaiting release, or already released
-            revert ChallengeWindowClosed();
+        if (m.mStatus != ICampaign.MilestoneStatus.Pending) {
+            revert MilestoneAlreadyDelivered(milestoneId);
         }
         m.deliveredAt = uint40(block.timestamp);
         m.mStatus = ICampaign.MilestoneStatus.ChallengeWindow;

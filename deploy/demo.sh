@@ -11,8 +11,6 @@ DEPLOYER=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 CREATOR=0x70997970C51812dc3A010C7d01b50e0d17dc79C8
 DEPOSIT=10000000000000000 # 0.01 ether creation deposit
 GOAL=10000000000000000000 # 10 ether
-LIVE=0
-CREATED_ANVIL=0
 
 if ! curl -s -X POST -H 'Content-Type: application/json' \
     --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' "$RPC" \

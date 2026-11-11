@@ -28,8 +28,12 @@ contract CampaignInvariantsTest is Test {
         vm.warp(START);
         CampaignFactory factory = new CampaignFactory(DEPOSIT);
         vm.deal(address(this), DEPOSIT); // the test contract pays the creation deposit
-        vm.deal(actors[0], 1000 ether);
-        vm.prank(actors[0]); // actor 0 is the creator; it never contributes in this suite
+        for (uint256 i = 0; i < 5; ++i) {
+            actors[i] = makeAddr(string.concat("actor", vm.toString(i)));
+            vm.deal(actors[i], 1_000 ether);
+        }
+        // actor 0 is the creator: it must exist before the factory pranks it.
+        vm.prank(actors[0]); // the creator never contributes to its own campaign
         factory.createCampaign{value: DEPOSIT}(
             "invariant campaign",
             "r2://uri",
@@ -39,10 +43,6 @@ contract CampaignInvariantsTest is Test {
             5 days
         );
         campaign = ICampaign(factory.campaignAt(0));
-        for (uint256 i = 0; i < 5; ++i) {
-            actors[i] = makeAddr(string.concat("actor", vm.toString(i)));
-            vm.deal(actors[i], 1_000 ether);
-        }
         ghostLastTotalRaised = 0;
     }
 
