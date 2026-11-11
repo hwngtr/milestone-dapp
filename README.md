@@ -62,8 +62,16 @@ with the creation deposit still locked in the clone.
 
 ## What is deliberately not here
 
-No contracts are implemented yet. Week 1–2 is the proposal, the justification, and the architecture;
-`contracts/interfaces/` pins the API so Week 3 starts from a decision instead of a blank file.
+Week 3 contracts are implemented: `contracts/Campaign.sol` (state machine),
+`contracts/CampaignFactory.sol` (EIP-1167 clone factory), both interfaces, plus
+38 unit tests and 4 invariants (all green, `make test`). Run `make demo` for a
+one-command Anvil demonstration.
+
+Week 4 remains: exhaustive milestone edge matrix, reentrancy attack test,
+gas optimization pass against `.gas-snapshot`, and Sepolia deployment.
+
+Out of scope for the whole project: fiat on-ramp, on-chain arbitration,
+ERC-20 contributions, upgradeable contracts, privacy, production indexer.
 
 Out of scope for the whole project: fiat on-ramp, on-chain arbitration, ERC-20 contributions,
 upgradeable contracts, privacy, production indexer.

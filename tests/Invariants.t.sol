@@ -60,14 +60,11 @@ contract CampaignInvariantsTest is Test {
         if (i == 0) return; // the creator does not contribute to their own campaign
         amount = bound(amount, 0.01 ether, 2 ether);
         vm.prank(actors[i]);
-        (bool ok,) = address(campaign).call{value: amount}(
-            abi.encodeCall(ICampaign.contribute, ())
-        );
-        if (ok) {
+        try campaign.contribute{value: amount}() {
             ghostContributed[i] += amount;
             ghostTotalContributed += amount;
             ghostLastTotalRaised = campaign.totalRaised();
-        }
+        } catch {}
     }
 
     function claimRefund(uint256 actorSeed) external {
@@ -75,11 +72,10 @@ contract CampaignInvariantsTest is Test {
         uint256 owed = campaign.contributionOf(actors[i]);
         if (owed == 0) return;
         vm.prank(actors[i]);
-        (bool ok,) = address(campaign).call(abi.encodeCall(ICampaign.claimRefund, ()));
-        if (ok) {
+        try campaign.claimRefund() {
             ghostWithdrawn[i] += owed;
             ghostTotalRefunded += owed;
-        }
+        } catch {}
     }
 
     function warp(uint256 timestamp) external {

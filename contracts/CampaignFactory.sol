@@ -2,7 +2,6 @@
 pragma solidity 0.8.24;
 
 import {ICampaignFactory} from "./interfaces/ICampaignFactory.sol";
-import {ICampaign} from "./interfaces/ICampaign.sol";
 import {Campaign} from "./Campaign.sol";
 
 /// @title CampaignFactory

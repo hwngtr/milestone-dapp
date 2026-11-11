@@ -58,10 +58,7 @@ contract CampaignCoreTest is Test {
     function _contribute(address donor, uint96 amount) internal {
         vm.deal(donor, amount);
         vm.prank(donor);
-        (bool ok,) = address(campaign).call{value: amount}(
-            abi.encodeCall(ICampaign.contribute, ())
-        );
-        require(ok, "contribute reverted");
+        campaign.contribute{value: amount}();
     }
 
     // ------------------------------------------------------------ factory
@@ -418,7 +415,7 @@ contract CampaignCoreTest is Test {
     // ---------------------------------------------------- veto => cancel
 
     function test_VetoCancelsCampaignAndRefundsEveryone() public {
-        _activate(); // donor1 4, donor2 3.5, donor3 3; quorum bar = 5.25
+        _activate(); // donor1 4, donor2 3, donor3 3; total 10; bar = 5
         vm.prank(creator);
         campaign.deliver(0, keccak256("evidence"));
 
