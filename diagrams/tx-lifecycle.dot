@@ -1,0 +1,67 @@
+// Transaction lifecycle as implemented by the Effect-TS state machine.
+// This diagram is the answer to the brief's "real-time transaction state
+// handling (pending, success, failure)" requirement.
+// Render: dot -Tpng -Gdpi=200 tx-lifecycle.dot -o tx-lifecycle.png
+digraph tx_lifecycle {
+  graph [
+    rankdir=LR,
+    splines=true,
+    nodesep=0.32,
+    ranksep=0.55,
+    fontname="Arial",
+    fontsize=11,
+    bgcolor="#FBFAF7",
+    pad=0.15,
+    newrank=true
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Arial",
+    fontsize=10,
+    color="#0F172A",
+    penwidth=1.0,
+    margin="0.14,0.08"
+  ];
+  edge [
+    fontname="Arial",
+    fontsize=8.5,
+    color="#475569",
+    arrowsize=0.6
+  ];
+
+  idle     [label=<<B>idle</B>>, fillcolor="#FFFFFF"];
+  preview  [label=<<B>preview</B><BR/><FONT POINT-SIZE="8">gas estimate,<BR/>fee preview</FONT>>, fillcolor="#E8EEFB"];
+  sign     [label=<<B>awaiting signature</B><BR/><FONT POINT-SIZE="8">wallet sheet open</FONT>>, fillcolor="#E8EEFB"];
+  rejected [label=<<B>rejected</B><BR/><FONT POINT-SIZE="8">user closed sheet</FONT>>, fillcolor="#F1F5F9"];
+  pending  [label=<<B>pending</B><BR/><FONT POINT-SIZE="8">hash known,<BR/>not mined</FONT>>, fillcolor="#FFF7E6", color="#B45309"];
+  replaced [label=<<B>replaced</B><BR/><FONT POINT-SIZE="8">speed-up / cancel<BR/>same nonce</FONT>>, fillcolor="#F1F5F9"];
+  reverted [label=<<B>reverted</B><BR/><FONT POINT-SIZE="8">mined, state<BR/>rolled back</FONT>>, fillcolor="#FDECEC", color="#B42318"];
+  mined    [label=<<B>included</B><BR/><FONT POINT-SIZE="8">1 confirmation</FONT>>, fillcolor="#EDF6F1", color="#0B6B4F"];
+  final    [label=<<B>finalized</B><BR/><FONT POINT-SIZE="8">L2 safe head<BR/>or N blocks</FONT>>, fillcolor="#EDF6F1", color="#0B6B4F", penwidth=1.6];
+
+  stale    [label=<<B>stale</B><BR/><FONT POINT-SIZE="8">re-org dropped<BR/>the tx</FONT>>, fillcolor="#FDECEC", color="#B42318"];
+  timeout  [label=<<B>not seen</B><BR/><FONT POINT-SIZE="8">no receipt in<BR/>T seconds</FONT>>, fillcolor="#F1F5F9"];
+
+  idle -> preview [label="submit form"];
+  preview -> sign [label="estimate ok, or\nrevert caught here"];
+  sign -> rejected [label="user rejects"];
+  sign -> pending [label="broadcast"];
+  pending -> mined [label="receipt status 1"];
+  pending -> reverted [label="receipt status 0"];
+  pending -> replaced [label="nonce reused"];
+  pending -> timeout [label="poll budget out"];
+  mined -> final [label="confirmation depth"];
+  final -> stale [label="re-org", style=dashed];
+  rejected -> idle [style=dashed];
+  timeout -> pending [label="keep polling", style=dashed];
+
+  { rank=same; sign; rejected; }
+  { rank=same; pending; reverted; replaced; }
+  { rank=same; mined; timeout; }
+  { rank=same; final; stale; }
+
+  note [shape=note, style="filled", fillcolor="#FFFFFF", color="#94A3B8",
+    label=<<FONT POINT-SIZE="8.5"><B>Typed, not boolean</B><BR/>Each arrow is a tagged error or event<BR/>in an Effect Schema union. The UI cannot<BR/>show "success" without a receipt.<BR/>Re-org is a state, not an exception.</FONT>>];
+  note -> final [style=dotted, arrowhead=none, color="#94A3B8"];
+}

@@ -1,0 +1,56 @@
+// Campaign lifecycle for Milestone.
+// Render: dot -Tpng -Gdpi=200 campaign-lifecycle.dot -o campaign-lifecycle.png
+digraph campaign_lifecycle {
+  graph [
+    rankdir=TB,
+    splines=spline,
+    nodesep=0.5,
+    ranksep=0.42,
+    fontname="Arial",
+    fontsize=11,
+    bgcolor="#FBFAF7",
+    pad=0.2,
+    newrank=true
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Arial",
+    fontsize=11,
+    color="#0F172A",
+    penwidth=1.1,
+    margin="0.16,0.10",
+    width=2.35,
+    height=0.62
+  ];
+  edge [
+    fontname="Arial",
+    fontsize=9,
+    color="#475569",
+    arrowsize=0.7
+  ];
+
+  funding   [label=<<B>Funding</B><BR/><FONT POINT-SIZE="9">contributions accepted until deadline</FONT>>, fillcolor="#E8EEFB"];
+  failed    [label=<<B>Failed</B><BR/><FONT POINT-SIZE="9">goal missed: refund anyone, forever</FONT>>, fillcolor="#FDECEC", color="#B42318"];
+  active    [label=<<B>Active</B><BR/><FONT POINT-SIZE="9">goal reached, milestones begin</FONT>>, fillcolor="#EDF6F1", color="#0B6B4F"];
+  challenge [label=<<B>Challenge window</B><BR/><FONT POINT-SIZE="9">creator marked delivered; donors may object</FONT>>, fillcolor="#FFF7E6", color="#B45309"];
+  challenge -> canceled [label=" quorum objects: milestone vetoed "];
+  canceled   [label=<<B>Canceled</B><BR/><FONT POINT-SIZE="9">veto ended the campaign; all funds pull-refundable</FONT>>, fillcolor="#FFF1E6", color="#B45309"];
+  released  [label=<<B>Milestone released</B><BR/><FONT POINT-SIZE="9">creator credit grows; back to Active for the next one</FONT>>, fillcolor="#EDF6F1", color="#0B6B4F"];
+  done      [label=<<B>Completed</B><BR/><FONT POINT-SIZE="9">every milestone paid</FONT>>, fillcolor="#EDF6F1", color="#0B6B4F"];
+
+  funding -> failed  [label=" deadline + goal missed "];
+  funding -> active  [label=" deadline + goal met "];
+  active -> challenge [label=" deliver(milestone) "];
+  challenge -> released [label=" window ends, no quorum "];
+  challenge -> canceled [label=" quorum objects "];
+  released -> done     [label=" last milestone "];
+
+  { rank=same; active; failed; canceled; }
+  { rank=same; challenge; }
+
+  note [shape=note, style="filled", fillcolor="#FFFFFF", color="#94A3B8", width=3.6,
+    label=<<FONT POINT-SIZE="9"><B>Why optimistic, not per-donor voting</B><BR/>Voting on every milestone cost 69% of the campaign's L1 gas<BR/>in the cost model. Silence is consent; dissent is a signal.<BR/>A donor pays nothing in the happy path.</FONT>>];
+  note -> challenge [style=invis];
+  { rank=same; canceled; note; }
+}

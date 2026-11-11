@@ -1,0 +1,84 @@
+// Minimized system architecture for Milestone.
+// Same visual style as system-architecture.dot, fewer nodes.
+// Render: dot -Tpng -Gdpi=200 system-architecture-min.dot -o system-architecture-min.png
+digraph system_architecture_min {
+  graph [
+    rankdir=TB,
+    splines=line,
+    nodesep=0.4,
+    ranksep=0.55,
+    fontname="Arial",
+    fontsize=11,
+    bgcolor="#FBFAF7",
+    compound=true,
+    pad=0.25
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Arial",
+    fontsize=11,
+    color="#0F172A",
+    penwidth=1.1,
+    margin="0.16,0.10",
+    width=2.0,
+    height=0.62
+  ];
+  edge [
+    fontname="Arial",
+    fontsize=9,
+    color="#475569",
+    penwidth=1.0,
+    arrowsize=0.7
+  ];
+
+  subgraph cluster_user {
+    label=<<B>USER SIDE</B>>;
+    labeljust=l; fontsize=10; fontcolor="#64748B";
+    style="rounded,dashed"; color="#94A3B8"; bgcolor="#FFFFFF";
+    wallet [label=<<B>Browser + wallet</B><BR/><FONT POINT-SIZE="9">MetaMask · EIP-1193</FONT>>, fillcolor="#FFFFFF"];
+  }
+
+  subgraph cluster_app {
+    label=<<B>FRONTEND</B>  ·  static bundle>;
+    labeljust=l; fontsize=10; fontcolor="#64748B";
+    style="rounded,dashed"; color="#94A3B8"; bgcolor="#FFFFFF";
+    fe [label=<<B>React + Vite</B><BR/><FONT POINT-SIZE="9">wagmi · viem · tx state</FONT>>, fillcolor="#E8EEFB"];
+  }
+
+  subgraph cluster_edge {
+    label=<<B>CLOUDFLARE EDGE</B>  ·  holds no funds, no keys>;
+    labeljust=l; fontsize=10; fontcolor="#1D4ED8";
+    style="rounded,dashed"; color="#1D4ED8"; bgcolor="#F5F8FF";
+    proxy [label=<<B>RPC proxy Worker</B><BR/><FONT POINT-SIZE="9">key hiding · cache · rate limit</FONT>>, fillcolor="#E8EEFB"];
+    api   [label=<<B>Read API Worker</B><BR/><FONT POINT-SIZE="9">paged lists from D1</FONT>>, fillcolor="#E8EEFB"];
+    { rank=same; proxy; api; }
+  }
+
+  node_rpc [label=<<B>JSON-RPC node</B><BR/><FONT POINT-SIZE="9">zkSync Sepolia · Sepolia</FONT>>, fillcolor="#FFFFFF", color="#1D4ED8", penwidth=1.8, width=2.3];
+
+  subgraph cluster_chain {
+    label=<<B>ON-CHAIN</B>  ·  the only source of truth>;
+    labeljust=r; fontsize=10; fontcolor="#0B6B4F";
+    style="rounded"; color="#0B6B4F"; bgcolor="#EDF6F1"; penwidth=1.8;
+
+    factory  [label=<<B>CampaignFactory</B><BR/><FONT POINT-SIZE="9">create · registry · clone</FONT>>, fillcolor="#FFFFFF", color="#0B6B4F"];
+    campaign [label=<<B>Campaign (clone)</B><BR/><FONT POINT-SIZE="9">contribute · deliver · release</FONT><BR/><FONT POINT-SIZE="9">object · refund · pull payout</FONT>>, fillcolor="#FFFFFF", color="#0B6B4F", width=2.4];
+    vault    [label=<<B>Fund custody</B><BR/><FONT POINT-SIZE="9">inside Campaign</FONT><BR/><FONT POINT-SIZE="9">no admin key</FONT>>, fillcolor="#FFFFFF", color="#0B6B4F"];
+    { rank=same; factory; campaign; vault; }
+    factory -> campaign [label="deploy", style=dashed, color="#0B6B4F"];
+    campaign -> vault [label="holds", dir=none, color="#0B6B4F", style=dotted];
+  }
+
+  wallet -> fe      [constraint=true];
+  fe     -> proxy   [label="JSON-RPC writes", color="#1D4ED8"];
+  fe     -> api     [label="reads", color="#1D4ED8", style=dashed];
+  proxy  -> node_rpc [label="JSON-RPC", color="#1D4ED8", penwidth=1.4];
+  node_rpc -> factory  [color="#0B6B4F"];
+  node_rpc -> campaign [label="tx · eth_call", color="#0B6B4F", penwidth=1.4];
+
+  note [shape=note, style="filled", fillcolor="#FFF7E6", color="#B45309", width=3.2,
+        label=<<B>Trust boundary</B><BR/><FONT POINT-SIZE="9">Everything above the node can lie, stall, or disappear.</FONT><BR/><FONT POINT-SIZE="9">Correctness is decided only inside ON-CHAIN.</FONT>>];
+  note -> node_rpc [style=invis];
+  { rank=same; node_rpc; note; }
+}

@@ -1,0 +1,8 @@
+action,gas,new_storage_slots,l1_usd,l2_usd,central_db_usd,note
+Create campaign (factory clone + init),220000,8,6.600000,0.033000,0.00002000,6 config slots + clone creation + CampaignCreated event
+Contribute,55000,1,1.650000,0.008250,0.00002000,new donor slot + totalRaised update + Contributed event
+"Vote on milestone (donor, explicit design)",50000,1,1.500000,0.007500,0.00002000,per-donor approval slot + approval tally + event
+Mark milestone delivered,40000,1,1.200000,0.006000,0.00002000,evidence hash + status + window start + event
+Release milestone to creator,40000,1,1.200000,0.006000,0.00002000,status update + credit to creator (pull payment)
+"Object to milestone (donor, optimistic design)",50000,1,1.500000,0.007500,0.00002000,per-donor objection slot + objection count + event
+Claim refund after failed campaign,45000,1,1.350000,0.006750,0.00002000,refund-claimed flag + ETH transfer; CEI + pull pattern

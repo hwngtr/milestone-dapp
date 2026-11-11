@@ -1,0 +1,16 @@
+[profile.default]
+src = "contracts"
+test = "tests"
+script = "deploy"
+out = "out"
+libs = ["lib"]
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 20000
+
+[profile.default.fuzz]
+runs = 256
+
+[profile.default.invariant]
+runs = 64
+depth = 32
