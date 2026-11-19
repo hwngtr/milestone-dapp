@@ -1,0 +1,87 @@
+{
+  "slides": [
+    {
+      "type": "title",
+      "density": "editorial",
+      "slots": {
+        "paper-title": "Milestone: Solidity Contract Implementation",
+        "authors": "Hung Tran · Week 3-4 Code Demonstration",
+        "affiliation": "Vietnamese-German University · Current Topics in Computer Science",
+        "venue": "Blockchain, Web3 & Decentralized Systems",
+        "date": "November 2026",
+        "doi": "contracts/Campaign.sol · contracts/CampaignFactory.sol"
+      }
+    },
+    {
+      "type": "motivation",
+      "density": "balanced",
+      "slots": {
+        "headline": "No function in this contract lets an administrator move donor funds",
+        "body": "Three files on screen. ICampaign.sol defines the public API. Campaign.sol holds the escrow and the state machine. CampaignFactory.sol deploys 45-byte EIP-1167 clones. I will read the code line by line, then run make demo.",
+        "citation-1": "ICampaign.sol:7: Deliberately contains no function that lets an administrator move donor funds.",
+        "citation-2": "Campaign.sol:87-95: contribute() caps funding at the goal and records each donor's weight.",
+        "citation-3": "CampaignFactory.sol:36-67: createCampaign() validates inputs, deploys a clone, and initializes it in one transaction."
+      }
+    },
+    {
+      "type": "method",
+      "density": "balanced",
+      "slots": {
+        "headline": "contribute() caps funding at the goal",
+        "step-1": "_sync() moves Funding to Active or Failed at the deadline, so no keeper or admin call is needed.",
+        "step-2": "WrongStatus reverts after the deadline or after activation.",
+        "step-3": "totalRaised + msg.value > goal reverts with GoalAlreadyReached, so no excess enters escrow.",
+        "step-4": "ZeroAmount rejects empty contributions.",
+        "step-5": "The contract adds to totalRaised and contributionOf, then emits Contributed. Only creator can call deliver(), which stores deliveredAt and opens the challenge window.",
+        "diagram-caption": "Campaign.sol:87-95 and 102-113. The onlyCreator modifier gates deliver() and withdraw(), and nothing else."
+      }
+    },
+    {
+      "type": "result-table",
+      "density": "balanced",
+      "slots": {
+        "headline": "object() compares objection weight with half of totalRaised",
+        "finding": "The quorum line compares objectionWeight with half of totalRaised. release() has no access modifier because the caller has no choice of amount or destination.",
+        "table-headers": "FUNCTION   KEY LINE                                                              EFFECT",
+        "table-rows": "object()   uint256 weight = contributionOf[msg.sender];                        weight is fixed at funding time\nobject()   if (m.objectionWeight > totalRaised / 2)                             milestone Vetoed, campaign Canceled\nrelease()  if (block.timestamp < deliveredAt + challengeWindow) revert           window must be closed\nrelease()  m.mStatus = Released; creatorCredit += m.amount; ++releasedCount;     anyone may call; no privileged role",
+        "source": "Campaign.sol:121-140 and 145-165 · quorum is by money, not by donor count"
+      }
+    },
+    {
+      "type": "method",
+      "density": "balanced",
+      "slots": {
+        "headline": "Both payout functions update state before sending ETH",
+        "step-1": "claimRefund() rejects Funding, Active, and Completed, then reads the donor's exact contribution.",
+        "step-2": "The claim is zeroed and refundsWithdrawn increases before the transfer.",
+        "step-3": "msg.sender.call{value: amount} sends the ETH. A re-entry sees a settled claim and gets nothing.",
+        "step-4": "withdraw() is onlyCreator. It reads creatorCredit minus creatorWithdrawn, updates the ledger, then calls the creator.",
+        "step-5": "No function loops over donors, so one hostile recipient cannot block another recipient.",
+        "diagram-caption": "Campaign.sol:171-184 and 189-196. Checks, Effects, Interactions in that order."
+      }
+    },
+    {
+      "type": "discussion",
+      "density": "balanced",
+      "slots": {
+        "headline": "The factory deploys clones and forwards the deposit",
+        "implication-1": "createCampaign() validates the deadline, goal, window, milestone count, sum, and exact deposit before it deploys a 45-byte EIP-1167 clone.",
+        "implication-2": "initialize() runs in the same transaction as clone creation, so no attacker can initialize a clone first. The factory forwards the deposit and never holds campaign ETH.",
+        "limitation-1": "A veto after a released milestone leaves refunds unfunded. The planned fix refunds only the unreleased remainder, pro rata.",
+        "limitation-2": "The deadline closes funding only. A creator who never delivers leaves funds in escrow. A delivery deadline is Week 4 work.",
+        "future-work": "Add the post-release veto regression, malicious reentrancy contracts, milestone fuzz handlers, and Sepolia deployment."
+      }
+    },
+    {
+      "type": "qa",
+      "density": "editorial",
+      "slots": {
+        "headline": "Open the three source files, then run make test and make demo",
+        "contact-name": "Hung Tran · Vietnamese-German University",
+        "contact-email": "Course: Current Topics in CS, Blockchain and Web3",
+        "paper-url": "Source: contracts/interfaces, contracts/Campaign.sol, contracts/CampaignFactory.sol",
+        "code-url": "make test · make demo · deploy/demo.sh"
+      }
+    }
+  ]
+}

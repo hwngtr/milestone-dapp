@@ -3,3 +3,11 @@ cache/
 broadcast/
 .env
 *.log
+*.aux
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+__pycache__/
+*.pyc

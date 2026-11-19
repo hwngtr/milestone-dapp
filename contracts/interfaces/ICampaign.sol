@@ -2,7 +2,8 @@
 pragma solidity 0.8.24;
 
 /// @title ICampaign
-/// @notice Public interface of one crowdfunding campaign. Implementation lands in Week 3.
+/// @notice Public interface of one crowdfunding campaign. Implemented in `contracts/Campaign.sol`;
+///         campaigns are EIP-1167 clones of that implementation.
 /// @dev Deliberately contains no function that lets an administrator move donor funds.
 interface ICampaign {
     enum Status {

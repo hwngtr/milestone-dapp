@@ -1,0 +1,5 @@
+flowchart LR
+    F["CampaignFactory"] -->|createCampaign| C["45-byte EIP-1167 clone"]
+    C -->|delegatecall| I["Campaign implementation"]
+    C -->|holds| E["Donor ETH and deposit"]
+    F -->|holds| N["No campaign ETH"]

@@ -26,11 +26,15 @@ contract Campaign is ICampaign {
 
     address public creator;
     uint96 public goal;
+
+    // One slot: 64 + 32 + 8 + 8 + 8 bits. _sync() reads deadline and status together.
     uint64 public deadline;
     uint32 public challengeWindow;
+    uint8 private releasedCount;
+    ICampaign.Status public status;
+    bool private initialized;
 
     Milestone[] private milestones;
-    uint8 private releasedCount;
 
     uint256 public totalRaised;
     uint256 private refundsWithdrawn; // running sum, keeps INV-1 checkable without iterating donors
@@ -40,9 +44,6 @@ contract Campaign is ICampaign {
 
     mapping(address donor => uint256 amount) public contributionOf;
     mapping(uint8 milestoneId => mapping(address donor => bool)) private hasObjected;
-
-    ICampaign.Status public status;
-    bool private initialized;
 
     modifier onlyCreator() {
         if (msg.sender != creator) revert NotCreator();
@@ -85,8 +86,8 @@ contract Campaign is ICampaign {
     ///         would push `totalRaised` past the goal revert: excess money has no exit once
     ///         the campaign activates, and the contract never accepts money it cannot return.
     function contribute() external payable {
-        _sync();
-        if (status != ICampaign.Status.Funding) revert WrongStatus(status);
+        ICampaign.Status current = _sync();
+        if (current != ICampaign.Status.Funding) revert WrongStatus(current);
         if (totalRaised + msg.value > goal) revert GoalAlreadyReached();
         if (msg.value == 0) revert ZeroAmount();
         totalRaised += msg.value;
@@ -100,8 +101,8 @@ contract Campaign is ICampaign {
     /// @param evidenceHash keccak256 of the evidence object pinned in R2. Not stored: the event
     ///         is the record, which keeps the milestone struct packed to one slot.
     function deliver(uint8 milestoneId, bytes32 evidenceHash) external onlyCreator {
-        _sync();
-        if (status != ICampaign.Status.Active) revert WrongStatus(status);
+        ICampaign.Status current = _sync();
+        if (current != ICampaign.Status.Active) revert WrongStatus(current);
         if (milestoneId >= milestones.length) revert UnknownMilestone(milestoneId);
         Milestone storage m = milestones[milestoneId];
         if (m.mStatus != ICampaign.MilestoneStatus.Pending) {
@@ -119,8 +120,8 @@ contract Campaign is ICampaign {
     ///         then claim a full refund, and no milestone pays. Blunt by design: it needs no
     ///         oracle, and it makes frivolous objections socially expensive.
     function object(uint8 milestoneId) external {
-        _sync();
-        if (status != ICampaign.Status.Active) revert WrongStatus(status);
+        ICampaign.Status current = _sync();
+        if (current != ICampaign.Status.Active) revert WrongStatus(current);
         if (milestoneId >= milestones.length) revert UnknownMilestone(milestoneId);
         Milestone storage m = milestones[milestoneId];
         if (m.mStatus != ICampaign.MilestoneStatus.ChallengeWindow) revert MilestoneNotDelivered();
@@ -143,8 +144,8 @@ contract Campaign is ICampaign {
     ///         Callable by anyone: the caller has no discretion, so no privileged caller is
     ///         needed. A vetoed milestone never releases (INV-7).
     function release(uint8 milestoneId) external {
-        _sync();
-        if (status != ICampaign.Status.Active) revert WrongStatus(status);
+        ICampaign.Status current = _sync();
+        if (current != ICampaign.Status.Active) revert WrongStatus(current);
         if (milestoneId >= milestones.length) revert UnknownMilestone(milestoneId);
         Milestone storage m = milestones[milestoneId];
         if (m.mStatus == ICampaign.MilestoneStatus.Released) revert MilestoneAlreadyReleased();
@@ -169,9 +170,9 @@ contract Campaign is ICampaign {
     ///         Repeatable in principle, idempotent in effect: the second call reverts with
     ///         `NothingToWithdraw`, and nothing moves.
     function claimRefund() external {
-        _sync();
-        if (status == ICampaign.Status.Funding) revert DeadlineNotReached();
-        if (status == ICampaign.Status.Active || status == ICampaign.Status.Completed) revert GoalAlreadyReached();
+        ICampaign.Status current = _sync();
+        if (current == ICampaign.Status.Funding) revert DeadlineNotReached();
+        if (current == ICampaign.Status.Active || current == ICampaign.Status.Completed) revert GoalAlreadyReached();
 
         uint256 amount = contributionOf[msg.sender];
         if (amount == 0) revert NothingToWithdraw();
@@ -200,23 +201,24 @@ contract Campaign is ICampaign {
     ///         has no discretion, so no privileged caller is needed. Exists so the indexer
     ///         receives the transition event even when no donor or creator acts.
     function finalizeOutcome() external {
-        _sync();
-        if (status == ICampaign.Status.Funding) revert DeadlineNotReached();
+        if (_sync() == ICampaign.Status.Funding) revert DeadlineNotReached();
     }
 
-    /// @dev Lazy state transition. Failed and Active are only real once the deadline has
-    ///         passed; until then the campaign is Funding, whatever the raised amount. Once
-    ///         Failed, nothing returns to Funding or Active (INV-6); once Canceled, nothing
-    ///         returns to Active (INV-7).
-    function _sync() internal {
-        if (status == ICampaign.Status.Funding && block.timestamp >= deadline) {
+    /// @dev Lazy state transition. Callers reuse the returned status so the packed
+    ///         deadline/status slot is read once. Failed and Active are only real once the
+    ///         deadline has passed; until then the campaign is Funding. Once Failed, nothing
+    ///         returns to Funding or Active (INV-6); once Canceled, nothing returns to Active.
+    function _sync() internal returns (ICampaign.Status current) {
+        current = status;
+        if (current == ICampaign.Status.Funding && block.timestamp >= deadline) {
             if (totalRaised >= goal) {
-                status = ICampaign.Status.Active;
+                current = ICampaign.Status.Active;
                 emit CampaignActivated(totalRaised);
             } else {
-                status = ICampaign.Status.Failed;
+                current = ICampaign.Status.Failed;
                 emit CampaignFailed(totalRaised);
             }
+            status = current;
         }
     }
 

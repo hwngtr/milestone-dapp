@@ -1,5 +1,7 @@
 // Minimized system architecture for Milestone.
-// Same visual style as system-architecture.dot, fewer nodes.
+// One edge gateway Worker (/rpc, /api, /webhooks), D1 projection written only by the
+// projection function, Cron reconciler as gap-closer and INV-1 checker. No Go indexer:
+// ingest is webhook + cron, both inside the same Worker. See docs/03-architecture.md.
 // Render: dot -Tpng -Gdpi=200 system-architecture-min.dot -o system-architecture-min.png
 digraph system_architecture_min {
   graph [
@@ -43,19 +45,22 @@ digraph system_architecture_min {
     label=<<B>FRONTEND</B>  ·  static bundle>;
     labeljust=l; fontsize=10; fontcolor="#64748B";
     style="rounded,dashed"; color="#94A3B8"; bgcolor="#FFFFFF";
-    fe [label=<<B>React + Vite</B><BR/><FONT POINT-SIZE="9">wagmi · viem · tx state</FONT>>, fillcolor="#E8EEFB"];
+    fe [label=<<B>React + Vite</B><BR/><FONT POINT-SIZE="9">wagmi · viem · Effect-TS tx machine</FONT>>, fillcolor="#E8EEFB"];
   }
 
   subgraph cluster_edge {
-    label=<<B>CLOUDFLARE EDGE</B>  ·  holds no funds, no keys>;
+    label=<<B>CLOUDFLARE EDGE</B>  ·  one gateway Worker, holds no funds, no keys>;
     labeljust=l; fontsize=10; fontcolor="#1D4ED8";
     style="rounded,dashed"; color="#1D4ED8"; bgcolor="#F5F8FF";
-    proxy [label=<<B>RPC proxy Worker</B><BR/><FONT POINT-SIZE="9">key hiding · cache · rate limit</FONT>>, fillcolor="#E8EEFB"];
-    api   [label=<<B>Read API Worker</B><BR/><FONT POINT-SIZE="9">paged lists from D1</FONT>>, fillcolor="#E8EEFB"];
-    { rank=same; proxy; api; }
+    gw   [label=<<B>Edge gateway</B><BR/><FONT POINT-SIZE="9">/rpc allowlist · /api reads</FONT><BR/><FONT POINT-SIZE="9">/webhooks/alchemy (HMAC)</FONT>>, fillcolor="#E8EEFB", width=2.4];
+    cron [label=<<B>Cron reconciler</B><BR/><FONT POINT-SIZE="9">getLogs replay · INV-1 check</FONT>>, fillcolor="#FDF1E3", color="#B45309", width=2.4];
+    d1   [shape=cylinder, label=<<B>D1</B><BR/><FONT POINT-SIZE="9">event projection</FONT><BR/><FONT POINT-SIZE="9">one writer</FONT>>, fillcolor="#E8EEFB"];
+    r2   [label=<<B>R2</B><BR/><FONT POINT-SIZE="9">covers · evidence</FONT><BR/><FONT POINT-SIZE="9">hash on-chain</FONT>>, fillcolor="#E8EEFB"];
+    { rank=same; gw; cron; }
+    { rank=same; d1; r2; }
   }
 
-  node_rpc [label=<<B>JSON-RPC node</B><BR/><FONT POINT-SIZE="9">zkSync Sepolia · Sepolia</FONT>>, fillcolor="#FFFFFF", color="#1D4ED8", penwidth=1.8, width=2.3];
+  node_rpc [label=<<B>JSON-RPC nodes</B><BR/><FONT POINT-SIZE="9">zkSync Sepolia · Ethereum Sepolia</FONT><BR/><FONT POINT-SIZE="9">ChainProvider port: Alchemy + fallback</FONT>>, fillcolor="#FFFFFF", color="#1D4ED8", penwidth=1.8, width=2.6];
 
   subgraph cluster_chain {
     label=<<B>ON-CHAIN</B>  ·  the only source of truth>;
@@ -71,9 +76,12 @@ digraph system_architecture_min {
   }
 
   wallet -> fe      [constraint=true];
-  fe     -> proxy   [label="JSON-RPC writes", color="#1D4ED8"];
-  fe     -> api     [label="reads", color="#1D4ED8", style=dashed];
-  proxy  -> node_rpc [label="JSON-RPC", color="#1D4ED8", penwidth=1.4];
+  fe     -> gw      [label="writes · reads", color="#1D4ED8"];
+  fe     -> r2      [label="upload", style=dashed, color="#1D4ED8", constraint=false];
+  gw     -> d1      [label="idempotent apply", color="#1D4ED8"];
+  gw     -> node_rpc [label="JSON-RPC", color="#1D4ED8", penwidth=1.4];
+  cron   -> node_rpc [label="eth_getLogs", style=dashed, color="#B45309"];
+  node_rpc -> gw     [label="webhook events", style=dashed, color="#B45309", constraint=false];
   node_rpc -> factory  [color="#0B6B4F"];
   node_rpc -> campaign [label="tx · eth_call", color="#0B6B4F", penwidth=1.4];
 

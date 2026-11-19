@@ -40,19 +40,15 @@ Supporting material that makes the three artifacts credible:
 
 The sentence to defend: **"Nobody, including me, can move the money."**
 
-## Week 3–8 preview (not built yet)
+## Week 3–8 status
 
-| Week | Work | Verifiable output |
-|---|---|---|
-| 3–4 | Contracts + Foundry tests | `forge test`, gas snapshot, invariant suite |
-
-Week 3 core is built and green (2026-11-11): factory + EIP-1167 clones, full `Campaign`
-state machine, 38 unit tests, 4 invariants green, Anvil deploy verified with `cast`. Week 4
-remains: the exhaustive milestone suite (multi-milestone flows, reentrancy attack test,
-deliver/objection edge matrix), gas optimization pass against the snapshot, Sepolia deployment.
-| 5–6 | Frontend + Effect-TS tx machine + Cloudflare Workers | End-to-end contribute on Anvil |
-| 7 | Deploy to zkSync Sepolia + Ethereum Sepolia, measure real gas | Cost table replaced by measured numbers |
-| 8 | Report (IEEE, 5 pages), README, demo | Submission |
+| Week | Work | Verifiable output | Status |
+|---|---|---|---|
+| 3 | Contracts + Foundry tests + `make demo` | factory + EIP-1167 clones, full `Campaign` state machine, 38 unit tests + invariant suite green, Anvil lifecycle verified with `cast` | **done** (2026-11-11) |
+| 4 | Exhaustive milestone suite + hardening | multi-milestone flows, deliver/objection edge matrix, reentrancy attack test that fails on a deliberately broken implementation, Sepolia deployment. Gas optimization pass done: `docs/gas-optimization-report.md` | next |
+| 5–6 | Frontend + Effect-TS tx machine + Cloudflare Workers | End-to-end contribute on Anvil | planned |
+| 7 | Deploy to zkSync Sepolia + Ethereum Sepolia, measure real gas | Cost table replaced by measured numbers | planned |
+| 8 | Report (IEEE, 5 pages), README, demo | Submission | planned |
 
 ## Risks and how the plan absorbs them
 

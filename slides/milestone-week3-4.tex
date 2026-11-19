@@ -1,0 +1,219 @@
+% Milestone - Week 3-4 Solidity code demonstration (5-minute talk)
+% Code first. No cost model, no Week 1-2 architecture recap.
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{graphicx}
+
+\graphicspath{{../diagrams/}}
+
+\title{Milestone: Solidity Contract Implementation}
+\subtitle{Week 3-4 Code Demonstration}
+\author{Hung Tran}
+\institute{Vietnamese-German University}
+\date{November 2026}
+
+\begin{document}
+
+% ---------------------------------------------------------------- 1. Code map
+\begin{frame}{1. Files shown in this talk}
+\textbf{One sentence:} nobody, including the developer, can move donor funds.
+
+\vspace{0.4em}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+    \small\textbf{Source on screen}
+    \begin{itemize}
+      \item \texttt{contracts/interfaces/ICampaign.sol} — the public API
+      \item \texttt{contracts/Campaign.sol} — the escrow and state machine
+      \item \texttt{contracts/CampaignFactory.sol} — clone deployment
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+    \small\textbf{What I will show}
+    \begin{itemize}
+      \item The seven functions a caller can reach
+      \item The rules that move ETH, with line numbers
+      \item The functions that do not exist
+      \item The demo and the test result
+    \end{itemize}
+  \end{column}
+\end{columns}
+
+\vspace{0.4em}
+\small Repository link goes here. I will leave this slide up while I open the files.
+\end{frame}
+
+% ---------------------------------------------------------------- 2. Interface
+\begin{frame}[fragile]{2. Public functions in ICampaign}
+\footnotesize
+\begin{verbatim}
+// ICampaign.sol:4-8
+/// @dev Deliberately contains no function that lets an administrator move donor funds.
+interface ICampaign {
+\end{verbatim}
+\vspace{0.2em}
+\begin{verbatim}
+// ICampaign.sol:60,66,75,80,86,91,97
+function contribute() external payable;
+function deliver(uint8 milestoneId, bytes32 evidenceHash) external;
+function object(uint8 milestoneId) external;
+function release(uint8 milestoneId) external;
+function claimRefund() external;
+function withdraw() external;
+function finalizeOutcome() external;
+\end{verbatim}
+\vspace{0.3em}
+\small The interface lists seven functions. There is no \texttt{owner}, \texttt{pause}, \texttt{upgrade}, or \texttt{sweep}.
+The two payout functions send ETH to a donor or to the creator.
+\end{frame}
+
+% ---------------------------------------------------------------- 3. Funding + delivery
+\begin{frame}[fragile]{3. contribute() and deliver()}
+\footnotesize
+\begin{verbatim}
+// Campaign.sol:88-96
+function contribute() external payable {
+    ICampaign.Status current = _sync();
+    if (current != ICampaign.Status.Funding) revert WrongStatus(current);
+    if (totalRaised + msg.value > goal) revert GoalAlreadyReached();
+    if (msg.value == 0) revert ZeroAmount();
+    totalRaised += msg.value;
+    contributionOf[msg.sender] += msg.value;
+    emit Contributed(msg.sender, msg.value, totalRaised);
+}
+\end{verbatim}
+\vspace{0.25em}
+\begin{verbatim}
+// Campaign.sol:111-113, inside deliver() (onlyCreator)
+m.deliveredAt = uint40(block.timestamp);
+m.mStatus = ICampaign.MilestoneStatus.ChallengeWindow;
+emit MilestoneDelivered(milestoneId, evidenceHash,
+                        uint64(m.deliveredAt) + challengeWindow);
+\end{verbatim}
+\vspace{0.25em}
+\small Line 91 rejects a contribution that would pass the goal. \texttt{onlyCreator} appears on
+\texttt{deliver()} and \texttt{withdraw()} only.
+\end{frame}
+
+% ---------------------------------------------------------------- 4. Object + release
+\begin{frame}[fragile]{4. object() and release()}
+\scriptsize
+\begin{verbatim}
+// Campaign.sol:129-140, inside object()
+uint256 weight = contributionOf[msg.sender];
+if (weight == 0) revert NotDonor();
+if (hasObjected[milestoneId][msg.sender]) revert MilestoneAlreadyObjected(milestoneId);
+hasObjected[milestoneId][msg.sender] = true;
+m.objectionWeight += uint96(weight);
+emit MilestoneObjected(milestoneId, msg.sender, weight);
+if (m.objectionWeight > totalRaised / 2) {
+    m.mStatus = ICampaign.MilestoneStatus.Vetoed;
+    status = ICampaign.Status.Canceled;
+    emit MilestoneVetoed(milestoneId, m.objectionWeight);
+}
+\end{verbatim}
+\vspace{0.25em}
+\begin{verbatim}
+// Campaign.sol:146-154, inside release() -- no access modifier
+function release(uint8 milestoneId) external {
+    ICampaign.Status current = _sync();
+    if (current != ICampaign.Status.Active) revert WrongStatus(current);
+    // checks the window, then credits creatorCredit
+}
+\end{verbatim}
+\vspace{0.3em}
+\small The quorum compares \texttt{objectionWeight} with half of \texttt{totalRaised}. \texttt{release()} has no access modifier.
+The caller cannot change the amount or the destination.
+\end{frame}
+
+% ---------------------------------------------------------------- 5. Payouts
+\begin{frame}[fragile]{5. claimRefund() and withdraw()}
+\scriptsize
+\begin{verbatim}
+// Campaign.sol:172-185, claimRefund()
+ICampaign.Status current = _sync();
+if (current == ICampaign.Status.Funding) revert DeadlineNotReached();
+if (current == ICampaign.Status.Active || current == ICampaign.Status.Completed)
+    revert GoalAlreadyReached();
+uint256 amount = contributionOf[msg.sender];
+if (amount == 0) revert NothingToWithdraw();
+contributionOf[msg.sender] = 0;              // Effects first
+refundsWithdrawn += amount;
+(bool ok,) = msg.sender.call{value: amount}("");  // Interaction last
+if (!ok) revert TransferFailed();
+\end{verbatim}
+\vspace{0.25em}
+\begin{verbatim}
+// Campaign.sol:190-197, withdraw() -- onlyCreator
+uint256 amount = creatorCredit - creatorWithdrawn;
+if (amount == 0) revert NothingToWithdraw();
+creatorWithdrawn += amount;
+(bool ok,) = msg.sender.call{value: amount}("");
+if (!ok) revert TransferFailed();
+\end{verbatim}
+\vspace{0.3em}
+\small Both functions update state before the external call. A second call reverts. No function loops over donors.
+\end{frame}
+
+% ---------------------------------------------------------------- 6. Factory
+\begin{frame}[fragile]{6. createCampaign() and the clone code}
+\scriptsize
+\begin{verbatim}
+// CampaignFactory.sol:44-62 (validation, then deploy and init)
+if (deadline <= block.timestamp) revert InvalidDeadline();
+if (goal == 0) revert InvalidGoal();
+if (milestoneAmounts.length == 0 || milestoneAmounts.length > type(uint8).max)
+    revert LengthMismatch();
+uint256 sum;
+for (uint256 i = 0; i < milestoneAmounts.length; ++i) sum += milestoneAmounts[i];
+if (sum != goal) revert AmountsDoNotSumToGoal(sum, goal);
+if (msg.value != creationDeposit) revert DepositRequired(creationDeposit);
+campaign = _deployClone(implementation);
+Campaign(campaign).initialize{value: msg.value}(msg.sender, goal, deadline,
+                                                challengeWindow, milestoneAmounts);
+\end{verbatim}
+\vspace{0.25em}
+\begin{verbatim}
+// CampaignFactory.sol:87-93 -- EIP-1167 creation code, 55 bytes
+mstore(0x00, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+mstore(0x14, targetBytes)
+mstore(0x28, 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
+proxy := create(0, 0x00, 55)
+\end{verbatim}
+\vspace{0.2em}
+\small \texttt{initialize()} runs in the transaction that creates the clone. No earlier transaction contains the clone.
+The factory forwards the deposit and holds no campaign ETH.
+\end{frame}
+
+% ---------------------------------------------------------------- 7. Demo + tests
+\begin{frame}{7. Demo and test results}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+    \small\textbf{\texttt{make demo} on Anvil}
+    \begin{enumerate}
+      \item Deploy factory, create campaign (10 ETH, milestones 4/3/3)
+      \item Donor contributes the goal
+      \item Deadline passes, \texttt{finalizeOutcome()}
+      \item Creator calls \texttt{deliver(0, hash)}
+      \item Window closes, \textbf{donor} calls \texttt{release(0)}
+      \item Creator calls \texttt{withdraw()}
+      \item \texttt{grep} the source: no admin function
+    \end{enumerate}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+    \small\textbf{\texttt{make test}, green}
+    \begin{itemize}
+      \item 38 unit tests
+      \item 4 fuzz invariants over a 5-actor ghost ledger
+      \item Exact-half veto boundary tested: 5 of 10 ETH cannot cancel
+      \item Veto cancels, refunds pay exact contributions
+      \item Second refund and second release revert
+    \end{itemize}
+  \end{column}
+\end{columns}
+
+\vspace{0.4em}
+\small In the demo, a donor calls \texttt{release(0)}. The creator does not. No admin role exists.
+\end{frame}
+
+\end{document}

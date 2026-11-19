@@ -66,8 +66,10 @@ Contribution rule: contributions are capped at the goal. Money that would exceed
 refused at the door, because once the campaign activates, excess has no exit; the contract never
 accepts funds it cannot return.
 
-Accounting rule: the contract's ETH balance must always equal `totalRaised - creatorWithdrawn -
-refundsWithdrawn`, plus unclaimed dust. This is invariant INV-1 and it is fuzzed.
+Accounting rule: the contract's ETH balance equals the locked creation deposit (until the
+creator claims it) plus `totalRaised - creatorWithdrawn - refundsWithdrawn`. Forced ETH can only
+push the balance *above* this line, so the invariant is an inequality. Week 3 fuzzes the exact
+form over contributions and refunds; Week 4 extends it across releases. This is invariant INV-1.
 
 Milestone structs pack into one slot each (`uint96 amount`, `uint40 deliveredAt`, `uint96
 objectionWeight`, `uint8 status` = 240 bits). Tight packing is a course pattern and saves about

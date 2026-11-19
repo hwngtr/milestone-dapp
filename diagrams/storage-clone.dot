@@ -1,0 +1,62 @@
+// Storage packing and EIP-1167 clone delegation for Milestone (Week 3-4).
+// Render: dot -Tpng -Gdpi=200 storage-clone.dot -o storage-clone.png
+//         dot -Tsvg storage-clone.dot -o storage-clone.svg
+digraph storage_clone {
+  graph [
+    rankdir=LR,
+    splines=spline,
+    nodesep=0.45,
+    ranksep=0.65,
+    fontname="Arial",
+    fontsize=11,
+    bgcolor="#FBFAF7",
+    pad=0.2,
+    newrank=true
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Arial",
+    fontsize=10,
+    color="#0F172A",
+    penwidth=1.1,
+    margin="0.14,0.10"
+  ];
+  edge [
+    fontname="Arial",
+    fontsize=9,
+    color="#475569",
+    arrowsize=0.7
+  ];
+
+  subgraph cluster_factory {
+    label=<<B>CampaignFactory</B>  (holds 0 ETH, no admin functions)>;
+    labelloc=t;
+    fontsize=11;
+    color="#CBD5E1";
+    style="rounded,filled";
+    fillcolor="#F8FAFC";
+    margin=14;
+
+    factory [label=<<B>createCampaign()</B><BR/><FONT POINT-SIZE="9">1. validate goal, deadline, window, sum(milestones)==goal<BR/>2. CREATE 55-byte clone (45-byte EIP-1167 runtime)<BR/>3. initialize{value: 0.01 ETH}() in the same tx (T11)</FONT>>, fillcolor="#E8EEFB"];
+  }
+
+  subgraph cluster_clone {
+    label=<<B>Campaign Clone</B>  (45-byte runtime · per-campaign storage + ETH escrow)>;
+    labelloc=t;
+    fontsize=11;
+    color="#0B6B4F";
+    style="rounded,filled";
+    fillcolor="#F4FAF7";
+    margin=14;
+
+    slot0 [label=<<B>Packed Milestone Slot (240 / 256 bits)</B><BR/><FONT POINT-SIZE="9">uint96 amount  |  uint40 deliveredAt  |  uint96 objectionWeight  |  uint8 mStatus<BR/>evidenceHash stays in event only → 1 SLOAD per milestone</FONT>>, fillcolor="#FFFFFF", color="#0B6B4F"];
+    ledger [label=<<B>Escrow Ledger (O(1) running sums, no donor loop)</B><BR/><FONT POINT-SIZE="9">totalRaised · refundsWithdrawn · creatorCredit · creatorWithdrawn · lockedDeposit<BR/>contributionOf[donor] · hasObjected[id][donor]</FONT>>, fillcolor="#FFFFFF", color="#0B6B4F"];
+  }
+
+  impl [label=<<B>Campaign Implementation</B><BR/><FONT POINT-SIZE="9">deployed once · immutable · never holds ETH<BR/>contribute · deliver · object · release · claimRefund · withdraw · finalizeOutcome<BR/><B>0 admin / pause / upgrade functions</B></FONT>>, fillcolor="#FFF7E6", color="#B45309"];
+
+  factory -> slot0 [label=" deploy + init "];
+  slot0 -> impl [label=" delegatecall (EIP-1167) "];
+  ledger -> impl [style=invis];
+}

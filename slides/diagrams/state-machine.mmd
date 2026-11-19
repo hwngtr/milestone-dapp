@@ -1,0 +1,9 @@
+stateDiagram-v2
+    [*] --> Funding: createCampaign and deposit
+    Funding --> Failed: deadline, goal missed
+    Funding --> Active: deadline, goal met
+    Active --> ChallengeWindow: deliver
+    ChallengeWindow --> Released: window ends, no quorum
+    ChallengeWindow --> Canceled: object above half of totalRaised
+    Released --> Active: more milestones
+    Released --> Completed: last milestone

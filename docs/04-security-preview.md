@@ -1,14 +1,14 @@
 # Security Preview
 
-Week 1–2 scope: name the attacks, name the mitigation, name the test that proves it. The full
-treatment belongs in the Week 8 report; this document fixes the design commitments early so the
-contracts are written against them.
+Started as Week 1–2 scope: name the attacks, name the mitigation, name the test that proves it.
+The contracts were written against these commitments in Week 3; the full treatment belongs in the
+Week 8 report.
 
 ## 1. Threats and mitigations
 
 | # | Threat | Where it bites | Mitigation | Test |
 |---|---|---|---|---|
-| T1 | **Reentrancy on refund**, a donor contract re-enters `claimRefund` | `claimRefund`, `withdraw` | Checks-Effects-Interactions: zero the claim flag before the transfer; `nonReentrant`; pull-over-push so no loop pays out | Attacker contract that re-enters; assert one payout and unchanged balance |
+| T1 | **Reentrancy on refund**, a donor contract re-enters `claimRefund` | `claimRefund`, `withdraw` | Checks-Effects-Interactions: zero the claim before the transfer; pull-over-push so no loop pays out. No lock modifier: with state settled before the call, re-entry sees a settled claim and gets nothing | Attacker contract that re-enters; assert one payout and unchanged balance |
 | T2 | **Reentrancy on release** | `withdraw` | Credit accounting updated before transfer; creator pulls, contract pushes nothing | Malicious creator contract |
 | T3 | **Access control**, donor calls `deliver`, stranger calls `object` | `deliver`, `object` | `onlyCreator` modifier; `object` requires `balanceOf(msg.sender) > 0` **and** state `ChallengeWindow` | Negative tests for each role |
 | T4 | **Integer and rounding**, proportional refunds leave or create wei | `claimRefund` | Solidity 0.8 checked arithmetic; refunds computed with floor; `INV-1` asserts `sum(liabilities) <= balance` | Fuzz contributions across 3–5 donors, assert no over-withdrawal |
@@ -21,7 +21,18 @@ contracts are written against them.
 | T11 | **Clone initialisation takeover**, attacker initialises a clone first | `clone.initialize` | `initializer` guard; factory initialises in the same transaction as deployment | Deploy, then attempt a second `initialize` |
 | T12 | **Unbounded loop**, release iterates donors and runs out of gas | `release` | No iteration over donors anywhere. Payments are pull-based | Gas test with 500 contributions; release cost must be constant |
 
-## 2. Invariants (implemented as Foundry invariant tests in Week 4)
+Week 3 test status: T3, T4 (fuzz side), T6, T8, T9, and T11 have passing tests in
+`tests/CampaignCore.t.sol`. The attack contracts for T1/T2, the boundary warps for T5, and the
+500-contribution gas test for T12 are Week 4 deliverables.
+
+## 2. Invariants
+
+Implemented and running under the fuzzer today (`tests/Invariants.t.sol`): INV-1, INV-2, INV-3,
+plus ghost-ledger agreement — the contract's accounting checked against an independent ledger the
+test maintains, after every fuzz step. INV-1 runs in its exact Week 3 form, `balance ==
+deposit + totalRaised - refunds`, because the funding/refund handlers produce no releases and no
+forced ETH; the general inequality below holds a fortiori and joins with Week 4's milestone
+handlers, which is also where INV-4 through INV-8 get their handlers.
 
 - **INV-1** `address(campaign).balance >= totalRaised - creatorWithdrawn - refundsWithdrawn`
   (inequality, because ETH can be forced in).

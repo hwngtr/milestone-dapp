@@ -24,7 +24,7 @@
 <text xml:space="preserve" text-anchor="start" x="11.52" y="-272.07" font-family="Arial" font-size="9.00">goal missed: refund anyone, forever</text>
 </g>
 <!-- funding&#45;&gt;failed -->
-<g id="edge2" class="edge">
+<g id="edge1" class="edge">
 <title>funding&#45;&gt;failed</title>
 <path fill="none" stroke="#475569" d="M126.86,-345.83C121.92,-341.31 117.03,-336.38 112.89,-331.32 107.82,-325.12 103.13,-317.88 99.1,-310.88"/>
 <polygon fill="#475569" stroke="#475569" points="101.24,-309.7 95.71,-304.76 96.96,-312.07 101.24,-309.7"/>
@@ -38,7 +38,7 @@
 <text xml:space="preserve" text-anchor="start" x="225.52" y="-272.07" font-family="Arial" font-size="9.00">goal reached, milestones begin</text>
 </g>
 <!-- funding&#45;&gt;active -->
-<g id="edge3" class="edge">
+<g id="edge2" class="edge">
 <title>funding&#45;&gt;active</title>
 <path fill="none" stroke="#475569" d="M193.59,-345.85C201.62,-341.17 209.96,-336.18 217.64,-331.32 229.13,-324.06 241.38,-315.81 252.45,-308.14"/>
 <polygon fill="#475569" stroke="#475569" points="253.59,-310.34 257.94,-304.32 250.79,-306.31 253.59,-310.34"/>
@@ -47,16 +47,16 @@
 <!-- challenge -->
 <g id="node4" class="node">
 <title>challenge</title>
-<path fill="#fff7e6" stroke="#b45309" stroke-width="1.1" d="M648.91,-214.92C648.91,-214.92 468.38,-214.92 468.38,-214.92 462.38,-214.92 456.38,-208.92 456.38,-202.92 456.38,-202.92 456.38,-182.28 456.38,-182.28 456.38,-176.28 462.38,-170.28 468.38,-170.28 468.38,-170.28 648.91,-170.28 648.91,-170.28 654.91,-170.28 660.91,-176.28 660.91,-182.28 660.91,-182.28 660.91,-202.92 660.91,-202.92 660.91,-208.92 654.91,-214.92 648.91,-214.92"/>
-<text xml:space="preserve" text-anchor="start" x="511.02" y="-193.15" font-family="Arial" font-weight="bold" font-size="11.00">Challenge window</text>
-<text xml:space="preserve" text-anchor="start" x="467.89" y="-184.05" font-family="Arial" font-size="9.00">creator marked delivered; donors may object</text>
+<path fill="#fff7e6" stroke="#b45309" stroke-width="1.1" d="M615.91,-214.92C615.91,-214.92 435.38,-214.92 435.38,-214.92 429.38,-214.92 423.38,-208.92 423.38,-202.92 423.38,-202.92 423.38,-182.28 423.38,-182.28 423.38,-176.28 429.38,-170.28 435.38,-170.28 435.38,-170.28 615.91,-170.28 615.91,-170.28 621.91,-170.28 627.91,-176.28 627.91,-182.28 627.91,-182.28 627.91,-202.92 627.91,-202.92 627.91,-208.92 621.91,-214.92 615.91,-214.92"/>
+<text xml:space="preserve" text-anchor="start" x="478.02" y="-193.15" font-family="Arial" font-weight="bold" font-size="11.00">Challenge window</text>
+<text xml:space="preserve" text-anchor="start" x="434.89" y="-184.05" font-family="Arial" font-size="9.00">creator marked delivered; donors may object</text>
 </g>
 <!-- active&#45;&gt;challenge -->
-<g id="edge4" class="edge">
+<g id="edge3" class="edge">
 <title>active&#45;&gt;challenge</title>
-<path fill="none" stroke="#475569" d="M320.66,-257.82C335.98,-247.97 355.12,-236.98 373.64,-229.92 397.1,-220.98 423.11,-214.14 448.04,-208.94"/>
-<polygon fill="#475569" stroke="#475569" points="448.23,-211.4 454.6,-207.61 447.26,-206.6 448.23,-211.4"/>
-<text xml:space="preserve" text-anchor="middle" x="412.64" y="-231.87" font-family="Arial" font-size="9.00"> deliver(milestone) </text>
+<path fill="none" stroke="#475569" d="M349.5,-257.8C382.64,-245.72 423.93,-230.67 458.2,-218.18"/>
+<polygon fill="#475569" stroke="#475569" points="458.69,-220.61 464.43,-215.91 457.01,-216.01 458.69,-220.61"/>
+<text xml:space="preserve" text-anchor="middle" x="460.77" y="-231.87" font-family="Arial" font-size="9.00"> deliver(milestone) </text>
 </g>
 <!-- canceled -->
 <g id="node5" class="node">
@@ -66,46 +66,39 @@
 <text xml:space="preserve" text-anchor="start" x="422.14" y="-272.07" font-family="Arial" font-size="9.00">veto ended the campaign; all funds pull&#45;refundable</text>
 </g>
 <!-- challenge&#45;&gt;canceled -->
-<g id="edge1" class="edge">
+<g id="edge5" class="edge">
 <title>challenge&#45;&gt;canceled</title>
-<path fill="none" stroke="#475569" d="M478.21,-215.44C472.69,-219.48 467.79,-224.26 463.89,-229.92 458.17,-238.25 460.81,-245.89 467.49,-252.55"/>
-<polygon fill="#475569" stroke="#475569" points="465.83,-254.36 472.79,-256.94 468.96,-250.59 465.83,-254.36"/>
-<text xml:space="preserve" text-anchor="middle" x="534.77" y="-231.87" font-family="Arial" font-size="9.00"> quorum objects: milestone vetoed </text>
-</g>
-<!-- challenge&#45;&gt;canceled -->
-<g id="edge6" class="edge">
-<title>challenge&#45;&gt;canceled</title>
-<path fill="none" stroke="#475569" d="M603.03,-215.27C611.76,-222.5 616.6,-231.11 610.64,-240.42 607.64,-245.11 603.92,-249.25 599.73,-252.89"/>
-<polygon fill="#475569" stroke="#475569" points="598.5,-250.74 594.47,-256.97 601.5,-254.62 598.5,-250.74"/>
-<text xml:space="preserve" text-anchor="middle" x="647.01" y="-231.87" font-family="Arial" font-size="9.00"> quorum objects </text>
+<path fill="none" stroke="#475569" d="M525.64,-215.3C525.64,-225.69 525.64,-238.3 525.64,-249.59"/>
+<polygon fill="#475569" stroke="#475569" points="523.2,-249.4 525.65,-256.4 528.1,-249.4 523.2,-249.4"/>
+<text xml:space="preserve" text-anchor="middle" x="559.39" y="-231.87" font-family="Arial" font-size="9.00"> quorum objects </text>
 </g>
 <!-- released -->
 <g id="node6" class="node">
 <title>released</title>
-<path fill="#edf6f1" stroke="#0b6b4f" stroke-width="1.1" d="M661.29,-129.78C661.29,-129.78 456,-129.78 456,-129.78 450,-129.78 444,-123.78 444,-117.78 444,-117.78 444,-97.14 444,-97.14 444,-91.14 450,-85.14 456,-85.14 456,-85.14 661.29,-85.14 661.29,-85.14 667.29,-85.14 673.29,-91.14 673.29,-97.14 673.29,-97.14 673.29,-117.78 673.29,-117.78 673.29,-123.78 667.29,-129.78 661.29,-129.78"/>
-<text xml:space="preserve" text-anchor="start" x="509.89" y="-108.01" font-family="Arial" font-weight="bold" font-size="11.00">Milestone released</text>
-<text xml:space="preserve" text-anchor="start" x="455.52" y="-98.91" font-family="Arial" font-size="9.00">creator credit grows; back to Active for the next one</text>
+<path fill="#edf6f1" stroke="#0b6b4f" stroke-width="1.1" d="M628.29,-129.78C628.29,-129.78 423,-129.78 423,-129.78 417,-129.78 411,-123.78 411,-117.78 411,-117.78 411,-97.14 411,-97.14 411,-91.14 417,-85.14 423,-85.14 423,-85.14 628.29,-85.14 628.29,-85.14 634.29,-85.14 640.29,-91.14 640.29,-97.14 640.29,-97.14 640.29,-117.78 640.29,-117.78 640.29,-123.78 634.29,-129.78 628.29,-129.78"/>
+<text xml:space="preserve" text-anchor="start" x="476.89" y="-108.01" font-family="Arial" font-weight="bold" font-size="11.00">Milestone released</text>
+<text xml:space="preserve" text-anchor="start" x="422.52" y="-98.91" font-family="Arial" font-size="9.00">creator credit grows; back to Active for the next one</text>
 </g>
 <!-- challenge&#45;&gt;released -->
-<g id="edge5" class="edge">
+<g id="edge4" class="edge">
 <title>challenge&#45;&gt;released</title>
-<path fill="none" stroke="#475569" d="M558.64,-169.76C558.64,-160.21 558.64,-148.85 558.64,-138.53"/>
-<polygon fill="#475569" stroke="#475569" points="561.1,-138.67 558.65,-131.67 556.2,-138.67 561.1,-138.67"/>
-<text xml:space="preserve" text-anchor="middle" x="612.27" y="-146.73" font-family="Arial" font-size="9.00"> window ends, no quorum </text>
+<path fill="none" stroke="#475569" d="M525.64,-169.76C525.64,-160.21 525.64,-148.85 525.64,-138.53"/>
+<polygon fill="#475569" stroke="#475569" points="528.1,-138.67 525.65,-131.67 523.2,-138.67 528.1,-138.67"/>
+<text xml:space="preserve" text-anchor="middle" x="579.27" y="-146.73" font-family="Arial" font-size="9.00"> window ends, no quorum </text>
 </g>
 <!-- done -->
 <g id="node7" class="node">
 <title>done</title>
-<path fill="#edf6f1" stroke="#0b6b4f" stroke-width="1.1" d="M631.25,-44.64C631.25,-44.64 486.04,-44.64 486.04,-44.64 480.04,-44.64 474.04,-38.64 474.04,-32.64 474.04,-32.64 474.04,-12 474.04,-12 474.04,-6 480.04,0 486.04,0 486.04,0 631.25,0 631.25,0 637.25,0 643.25,-6 643.25,-12 643.25,-12 643.25,-32.64 643.25,-32.64 643.25,-38.64 637.25,-44.64 631.25,-44.64"/>
-<text xml:space="preserve" text-anchor="start" x="530.14" y="-22.87" font-family="Arial" font-weight="bold" font-size="11.00">Completed</text>
-<text xml:space="preserve" text-anchor="start" x="516.27" y="-13.77" font-family="Arial" font-size="9.00">every milestone paid</text>
+<path fill="#edf6f1" stroke="#0b6b4f" stroke-width="1.1" d="M598.25,-44.64C598.25,-44.64 453.04,-44.64 453.04,-44.64 447.04,-44.64 441.04,-38.64 441.04,-32.64 441.04,-32.64 441.04,-12 441.04,-12 441.04,-6 447.04,0 453.04,0 453.04,0 598.25,0 598.25,0 604.25,0 610.25,-6 610.25,-12 610.25,-12 610.25,-32.64 610.25,-32.64 610.25,-38.64 604.25,-44.64 598.25,-44.64"/>
+<text xml:space="preserve" text-anchor="start" x="497.14" y="-22.87" font-family="Arial" font-weight="bold" font-size="11.00">Completed</text>
+<text xml:space="preserve" text-anchor="start" x="483.27" y="-13.77" font-family="Arial" font-size="9.00">every milestone paid</text>
 </g>
 <!-- released&#45;&gt;done -->
-<g id="edge7" class="edge">
+<g id="edge6" class="edge">
 <title>released&#45;&gt;done</title>
-<path fill="none" stroke="#475569" d="M558.64,-84.62C558.64,-75.07 558.64,-63.71 558.64,-53.39"/>
-<polygon fill="#475569" stroke="#475569" points="561.1,-53.53 558.65,-46.53 556.2,-53.53 561.1,-53.53"/>
-<text xml:space="preserve" text-anchor="middle" x="589.02" y="-61.59" font-family="Arial" font-size="9.00"> last milestone </text>
+<path fill="none" stroke="#475569" d="M525.64,-84.62C525.64,-75.07 525.64,-63.71 525.64,-53.39"/>
+<polygon fill="#475569" stroke="#475569" points="528.1,-53.53 525.65,-46.53 523.2,-53.53 528.1,-53.53"/>
+<text xml:space="preserve" text-anchor="middle" x="556.02" y="-61.59" font-family="Arial" font-size="9.00"> last milestone </text>
 </g>
 <!-- note -->
 <g id="node8" class="node">

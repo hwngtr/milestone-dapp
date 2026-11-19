@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Milestone. Solidity code demonstration.</title>
+<style>
+  :root {
+    --paper: #ffffff;
+    --ink: #111111;
+    --soft: #555555;
+    --screen-a: none;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); }
+  body {
+    font: 15px/1.45 ui-serif, Georgia, "Times New Roman", serif;
+    letter-spacing: 0.005em;
+  }
+  button { font: inherit; color: inherit; }
+  .deck { max-width: 1180px; margin: 0 auto; padding: 28px 28px 96px; }
+
+  .topbar {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 24px; border-bottom: 2px solid var(--ink); padding-bottom: 10px;
+  }
+  .mark { font: 700 13px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .16em; text-transform: uppercase; }
+  .kicker { font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--soft); text-transform: uppercase; letter-spacing: .1em; }
+
+  .slide { padding: 24px 0 0; outline: none; }
+  .slide[hidden] { display: none; }
+  h1 { font: 400 clamp(2.2rem, 5vw, 3.6rem)/1.02 ui-serif, Georgia, serif; letter-spacing: -.03em; margin: 0 0 14px; }
+  h2 { font: 400 clamp(1.5rem, 3vw, 2.2rem)/1.1 ui-serif, Georgia, serif; letter-spacing: -.015em; margin: 0 0 14px; border-bottom: 1px solid var(--ink); padding-bottom: 6px; }
+  p { margin: 0 0 12px; }
+  .lede { font-size: 18px; max-width: 48em; }
+  .small { font-size: 13px; color: var(--soft); }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  .plate { border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); background: var(--paper); padding: 16px; margin-top: 24px; }
+
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; }
+  .rule-list { list-style: none; margin: 0; padding: 0; }
+  .rule-list li { border-top: 1px solid var(--ink); padding: 10px 0; }
+  .rule-list li:last-child { border-bottom: 1px solid var(--ink); }
+
+  pre {
+    margin: 0; padding: 11px 13px; border: 1.5px solid var(--ink);
+    background: var(--paper); overflow-x: auto;
+    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre; tab-size: 4;
+  }
+  .codeblock + .codeblock { margin-top: 12px; }
+
+
+  .explain { margin-top: 12px; border-top: 2px solid var(--ink); padding-top: 8px; }
+  .explain h3 { margin: 0 0 6px; font: 700 12px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; letter-spacing: .1em; }
+  .explain ol { margin: 0; padding-left: 22px; }
+  .explain li { margin-bottom: 5px; }
+  .explain li::marker { font-family: ui-monospace, monospace; font-weight: 700; }
+  .notes[hidden] { display: none; }
+  .diagram-full { border: 2px solid var(--ink); padding: 14px; margin-bottom: 12px; }
+  .diagram-full svg { display: block; max-width: 100%; max-height: calc(100vh - 250px); width: auto; height: auto; margin: 0 auto; }
+
+
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    border-top: 2px solid var(--ink); background: var(--paper);
+    padding: 10px 28px; display: flex; align-items: center; gap: 18px;
+  }
+  .controls button { border: 1.5px solid var(--ink); background: var(--paper); padding: 6px 12px; cursor: pointer; }
+  .controls button:hover { background-image: var(--screen-a); background-size: 4px 4px; }
+  .controls button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .count { font: 700 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; min-width: 54px; }
+  .bar { flex: 1; display: flex; gap: 3px; }
+  .bar span { height: 12px; border: 1px solid var(--ink); flex: 1; }
+  .bar span.on { background-image: var(--screen-a); background-size: 4px 4px; }
+  .status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  @media (max-width: 820px) {
+    .cols { grid-template-columns: 1fr; }
+    .deck { padding: 18px 16px 88px; }
+    .controls { padding: 8px 16px; gap: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+  @media print {
+    .controls, .topbar { display: none; }
+    .deck { padding: 0; max-width: none; }
+    .slide { padding: 18px 0; break-after: page; page-break-after: always; }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    pre { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+  <div class="topbar">
+    <div class="mark">Milestone / Week 3-4</div>
+    <div class="kicker">Solidity demonstration</div>
+  </div>
+
+  <section class="slide" data-title="Files shown in this talk">
+    <h1>Solidity contract implementation.</h1>
+    <p class="lede">Nobody, including the developer, can move donor funds.</p>
+    <div class="plate">
+      <ul class="rule-list">
+        <li><span class="mono">contracts/interfaces/ICampaign.sol</span><br><span class="small">The seven public functions and the events.</span></li>
+        <li><span class="mono">contracts/Campaign.sol</span><br><span class="small">The escrow and state machine.</span></li>
+        <li><span class="mono">contracts/CampaignFactory.sol</span><br><span class="small">Clone deployment. No power over campaign funds.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" data-title="Public functions in ICampaign" hidden>
+    <h2>Public functions in ICampaign</h2>
+    <div class="codeblock"><pre>// ICampaign.sol:4-8
+/// @dev Deliberately contains no function that lets an administrator move donor funds.
+interface ICampaign {</pre></div>
+    <div class="codeblock"><pre>// ICampaign.sol:60,66,75,80,86,91,97
+function contribute() external payable;
+function deliver(uint8 milestoneId, bytes32 evidenceHash) external;
+function object(uint8 milestoneId) external;
+function release(uint8 milestoneId) external;
+function claimRefund() external;
+function withdraw() external;
+function finalizeOutcome() external;</pre></div>
+    <div class="explain notes">
+      <h3>Notes</h3>
+      <ol>
+        <li>The header comment states the claim. No function moves donor money to an operator.</li>
+        <li>Only <span class="mono">deliver()</span> and <span class="mono">withdraw()</span> use <span class="mono">onlyCreator</span>.</li>
+        <li>No owner key, no pause, no upgrade, no sweep. The list is the whole surface.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="slide" data-title="contribute() and deliver()" hidden>
+    <h2>contribute() and deliver()</h2>
+    <div class="codeblock"><pre>// Campaign.sol:88-96
+function contribute() external payable {
+    ICampaign.Status current = _sync();
+    if (current != ICampaign.Status.Funding) revert WrongStatus(current);
+    if (totalRaised + msg.value &gt; goal) revert GoalAlreadyReached();
+    if (msg.value == 0) revert ZeroAmount();
+    totalRaised += msg.value;
+    contributionOf[msg.sender] += msg.value;
+    emit Contributed(msg.sender, msg.value, totalRaised);
+}</pre></div>
+    <div class="codeblock"><pre>// Campaign.sol:111-113, inside deliver() (onlyCreator)
+m.deliveredAt = uint40(block.timestamp);
+m.mStatus = ICampaign.MilestoneStatus.ChallengeWindow;
+emit MilestoneDelivered(milestoneId, evidenceHash,
+                        uint64(m.deliveredAt) + challengeWindow);</pre></div>
+    <div class="explain notes">
+      <h3>Notes</h3>
+      <ol>
+        <li>Line 91 rejects a contribution that would pass the goal. The contract never takes money it cannot return.</li>
+        <li><span class="mono">_sync()</span> runs first. A late call sees Active or Failed, not Funding.</li>
+        <li>The evidence hash stays in the event. The milestone struct stays one storage slot.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="slide" data-title="object() and release()" hidden>
+    <h2>object() and release()</h2>
+    <div class="codeblock"><pre>// Campaign.sol:129-140, inside object()
+uint256 weight = contributionOf[msg.sender];
+if (weight == 0) revert NotDonor();
+if (hasObjected[milestoneId][msg.sender]) revert MilestoneAlreadyObjected(milestoneId);
+hasObjected[milestoneId][msg.sender] = true;
+m.objectionWeight += uint96(weight);
+if (m.objectionWeight &gt; totalRaised / 2) {
+    m.mStatus = ICampaign.MilestoneStatus.Vetoed;
+    status = ICampaign.Status.Canceled;
+}</pre></div>
+    <div class="codeblock"><pre>// Campaign.sol:146-154, inside release()
+function release(uint8 milestoneId) external {
+    ICampaign.Status current = _sync();
+    if (current != ICampaign.Status.Active) revert WrongStatus(current);
+    // the challenge window must be closed
+    // then credit creatorCredit
+}</pre></div>
+    <div class="explain notes">
+      <h3>Notes</h3>
+      <ol>
+        <li>Weight is the donor contribution, fixed at funding time.</li>
+        <li>The quorum compares objection weight with half of raised money. Exactly half is not enough.</li>
+        <li><span class="mono">release()</span> has no access modifier. The caller cannot choose the amount or destination.</li>
+      </ol>
+    </div>
+  </section>
+  <section class="slide diagram-slide" data-title="State machine diagram" hidden>
+    <h2>State machine</h2>
+    <div class="diagram-full"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 531 595" width="531" height="595" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif);--pele-bg:#ffffff;--pele-fg:#111111;--pele-muted:#555555;--pele-line:#111111;--pele-surface:#ffffff;--pele-surface-alt:#f2f2f2;--pele-border:#111111;--pele-accent:#111111" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M158.14,22L158.14,84"/><path class="pele-marker" d="M158.14,91L154.78,83L161.5,83Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M150.14,135C150.14,144.25 81.7,144.25 81.7,153.5L81.7,197"/><path class="pele-marker" d="M81.7,204L78.34,196L85.06,196Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M166.14,135C166.14,144.25 234.59,144.25 234.59,153.5L234.59,197"/><path class="pele-marker" d="M234.59,204L231.23,196L237.95,196Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M242.59,248L242.59,256.09C242.59,261.3 317.5,261.3 317.5,266.5L317.5,310"/><path class="pele-marker" d="M317.5,317L314.14,309L320.86,309Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M289.03,361C289.03,370.25 215.76,370.25 215.76,379.5L215.76,404.5C215.76,411.44 139.95,411.44 139.95,418.38L139.95,423"/><path class="pele-marker" d="M139.95,430L136.59,422L143.31,422Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M345.96,361C345.96,370.25 419.23,370.25 419.23,379.5L419.23,423"/><path class="pele-marker" d="M419.23,430L415.87,422L422.59,422Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M123.95,430L123.95,317C123.95,289 226.59,289 226.59,261L226.59,255"/><path class="pele-marker" d="M226.59,248L229.95,256L223.23,256Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M138.4,474L138.4,536"/><path class="pele-marker" d="M138.4,543L135.04,535L141.76,535Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge0"><rect x="64.66" y="42.5" width="186.98" height="21" rx="3" fill="var(--_bg)"/><text x="158.14" y="57.9" text-anchor="middle">createCampaign and deposit</text></g><g class="pele-edge-label" data-id="edge1"><rect x="10" y="155.5" width="143.39" height="21" rx="3" fill="var(--_bg)"/><text x="81.7" y="170.9" text-anchor="middle">deadline, goal missed</text></g><g class="pele-edge-label" data-id="edge2"><rect x="173.39" y="155.5" width="122.39" height="21" rx="3" fill="var(--_bg)"/><text x="234.59" y="170.9" text-anchor="middle">deadline, goal met</text></g><g class="pele-edge-label" data-id="edge3"><rect x="292.88" y="268.5" width="49.23" height="21" rx="3" fill="var(--_bg)"/><text x="317.5" y="283.9" text-anchor="middle">deliver</text></g><g class="pele-edge-label" data-id="edge4"><rect x="133.95" y="381.5" width="163.62" height="21" rx="3" fill="var(--_bg)"/><text x="215.76" y="396.9" text-anchor="middle">window ends, no quorum</text></g><g class="pele-edge-label" data-id="edge5"><rect x="317.57" y="381.5" width="203.33" height="21" rx="3" fill="var(--_bg)"/><text x="419.23" y="396.9" text-anchor="middle">object above half of totalRaised</text></g><g class="pele-edge-label" data-id="edge6"><rect x="68.6" y="328.5" width="110.69" height="21" rx="3" fill="var(--_bg)"/><text x="123.95" y="343.9" text-anchor="middle">more milestones</text></g><g class="pele-edge-label" data-id="edge7"><rect x="91.61" y="494.5" width="93.58" height="21" rx="3" fill="var(--_bg)"/><text x="138.4" y="509.9" text-anchor="middle">last milestone</text></g></g><g class="pele-nodes"><g class="pele-node pele-state-start" data-id="root_start" transform="translate(158.14,15)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state" data-id="Funding" transform="translate(158.14,113)"><rect x="-44.9" y="-22" width="89.81" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Funding</text></g><g class="pele-node pele-state" data-id="Failed" transform="translate(81.7,226)"><rect x="-37.78" y="-22" width="75.57" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Failed</text></g><g class="pele-node pele-state" data-id="Active" transform="translate(234.59,226)"><rect x="-37.78" y="-22" width="75.57" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Active</text></g><g class="pele-node pele-state" data-id="ChallengeWindow" transform="translate(317.5,339)"><rect x="-80.46" y="-22" width="160.93" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">ChallengeWindow</text></g><g class="pele-node pele-state" data-id="Released" transform="translate(138.4,452)"><rect x="-49.79" y="-22" width="99.58" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Released</text></g><g class="pele-node pele-state" data-id="Canceled" transform="translate(419.23,452)"><rect x="-49.79" y="-22" width="99.58" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Canceled</text></g><g class="pele-node pele-state" data-id="Completed" transform="translate(138.4,565)"><rect x="-54.68" y="-22" width="109.36" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Completed</text></g></g></svg></div>
+    <p class="small">The deadline moves Funding to Active or Failed. deliver opens the challenge window. A money majority vetoes and cancels the campaign. release credits the creator after the window closes.</p>
+  </section>
+
+  <section class="slide" data-title="claimRefund() and withdraw()" hidden>
+    <h2>claimRefund() and withdraw()</h2>
+    <div class="codeblock"><pre>// Campaign.sol:172-185, claimRefund()
+ICampaign.Status current = _sync();
+if (current == ICampaign.Status.Funding) revert DeadlineNotReached();
+if (current == ICampaign.Status.Active || current == ICampaign.Status.Completed)
+    revert GoalAlreadyReached();
+uint256 amount = contributionOf[msg.sender];
+if (amount == 0) revert NothingToWithdraw();
+contributionOf[msg.sender] = 0;              // Effects first
+refundsWithdrawn += amount;
+(bool ok,) = msg.sender.call{value: amount}("");  // Interaction last
+if (!ok) revert TransferFailed();</pre></div>
+    <div class="codeblock"><pre>// Campaign.sol:190-197, withdraw() -- onlyCreator
+uint256 amount = creatorCredit - creatorWithdrawn;
+if (amount == 0) revert NothingToWithdraw();
+creatorWithdrawn += amount;
+(bool ok,) = msg.sender.call{value: amount}("");
+if (!ok) revert TransferFailed();</pre></div>
+    <div class="explain notes">
+      <h3>Notes</h3>
+      <ol>
+        <li>Both functions zero the claim before the external call. Re-entry sees a settled claim.</li>
+        <li>Pull over push. The contract never sends ETH unprompted and never loops over donors.</li>
+        <li>A second call reverts. Unclaimed refunds stay in the clone with no admin sweep.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="slide" data-title="createCampaign() and the clone code" hidden>
+    <h2>createCampaign() and the clone code</h2>
+    <div class="codeblock"><pre>// CampaignFactory.sol:44-62
+if (deadline &lt;= block.timestamp) revert InvalidDeadline();
+if (goal == 0) revert InvalidGoal();
+if (milestoneAmounts.length == 0 || milestoneAmounts.length &gt; type(uint8).max)
+    revert LengthMismatch();
+uint256 sum;
+for (uint256 i = 0; i &lt; milestoneAmounts.length; ++i) sum += milestoneAmounts[i];
+if (sum != goal) revert AmountsDoNotSumToGoal(sum, goal);
+if (msg.value != creationDeposit) revert DepositRequired(creationDeposit);
+campaign = _deployClone(implementation);
+Campaign(campaign).initialize{value: msg.value}(msg.sender, goal, deadline,
+                                                challengeWindow, milestoneAmounts);</pre></div>
+    <div class="codeblock"><pre>// CampaignFactory.sol:87-93 -- EIP-1167, 55 bytes
+mstore(0x00, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73...)
+mstore(0x14, targetBytes)
+mstore(0x28, 0x5af43d82803e903d91602b57fd5bf300000000...)
+proxy := create(0, 0x00, 55)</pre></div>
+    <div class="explain notes">
+      <h3>Notes</h3>
+      <ol>
+        <li>Milestone amounts must sum to the goal. The deposit must match exactly.</li>
+        <li><span class="mono">initialize()</span> runs in the same transaction as the clone. No front-run is possible.</li>
+        <li>The factory forwards the deposit and holds no campaign ETH.</li>
+      </ol>
+    </div>
+  </section>
+  <section class="slide diagram-slide" data-title="Factory and clone diagram" hidden>
+    <h2>Factory and clone</h2>
+    <div class="diagram-full"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 901 196" width="901" height="196" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif);--pele-bg:#ffffff;--pele-fg:#111111;--pele-muted:#555555;--pele-line:#111111;--pele-surface:#ffffff;--pele-surface-alt:#f2f2f2;--pele-border:#111111;--pele-accent:#111111" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge" data-id="L_F_C_0"><path d="M170.26,112C180.51,112 180.51,76 190.76,76L325.96,76"/><path class="pele-marker" d="M332.96,76L324.96,79.36L324.96,72.64Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge" data-id="L_C_I_0"><path d="M536.16,68C546.41,68 546.41,32 556.66,32L663.86,32"/><path class="pele-marker" d="M670.86,32L662.86,35.36L662.86,28.64Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge" data-id="L_C_E_0"><path d="M536.16,84C546.41,84 546.41,120 556.66,120L663.86,120"/><path class="pele-marker" d="M670.86,120L662.86,123.36L662.86,116.64Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge" data-id="L_F_N_0"><path d="M170.26,128C180.51,128 180.51,164 190.76,164L344.21,164"/><path class="pele-marker" d="M351.21,164L343.21,167.36L343.21,160.64Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="L_F_C_0"><rect x="192.76" y="65.5" width="110.7" height="21" rx="3" fill="var(--_bg)"/><text x="248.11" y="80.9" text-anchor="middle">createCampaign</text></g><g class="pele-edge-label" data-id="L_C_I_0"><rect x="558.66" y="21.5" width="82.7" height="21" rx="3" fill="var(--_bg)"/><text x="600.01" y="36.9" text-anchor="middle">delegatecall</text></g><g class="pele-edge-label" data-id="L_C_E_0"><rect x="579.28" y="109.5" width="41.46" height="21" rx="3" fill="var(--_bg)"/><text x="600.01" y="124.9" text-anchor="middle">holds</text></g><g class="pele-edge-label" data-id="L_F_N_0"><rect x="227.38" y="153.5" width="41.46" height="21" rx="3" fill="var(--_bg)"/><text x="248.11" y="168.9" text-anchor="middle">holds</text></g></g><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="F" transform="translate(89.13,120)"><rect x="-81.13" y="-24" width="162.26" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">CampaignFactory</text></g><g class="pele-node pele-shape-rect" data-id="C" transform="translate(434.56,76)"><rect x="-101.6" y="-24" width="203.2" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">45-byte EIP-1167 clone</text></g><g class="pele-node pele-shape-rect" data-id="I" transform="translate(781.78,32)"><rect x="-110.92" y="-24" width="221.84" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Campaign implementation</text></g><g class="pele-node pele-shape-rect" data-id="E" transform="translate(772.46,120)"><rect x="-101.59" y="-24" width="203.18" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Donor ETH and deposit</text></g><g class="pele-node pele-shape-rect" data-id="N" transform="translate(434.56,164)"><rect x="-83.35" y="-24" width="166.7" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">No campaign ETH</text></g></g></svg></div>
+    <p class="small">The factory validates the inputs, deploys a 45-byte EIP-1167 clone, and calls initialize in the same transaction. The clone holds donor ETH. The factory holds no campaign ETH.</p>
+  </section>
+
+  <section class="slide" data-title="Demo and test results" hidden>
+    <h2>Demo and test results</h2>
+    <div class="cols">
+      <div>
+        <h3 class="mono" style="font-size:13px;letter-spacing:.1em">make demo</h3>
+        <ol class="rule-list">
+          <li>Deploy factory and create campaign, 10 ETH, milestones 4/3/3.</li>
+          <li>Donor contributes the goal.</li>
+          <li>Deadline passes, <span class="mono">finalizeOutcome()</span>.</li>
+          <li>Creator calls <span class="mono">deliver(0, hash)</span>.</li>
+          <li>Window closes, a donor calls <span class="mono">release(0)</span>.</li>
+          <li>Creator calls <span class="mono">withdraw()</span>.</li>
+          <li>Search the source. No admin function appears.</li>
+        </ol>
+      </div>
+      <div>
+        <h3 class="mono" style="font-size:13px;letter-spacing:.1em">make test</h3>
+        <ul class="rule-list">
+          <li>38 unit tests plus 4 fuzz invariants. All green.</li>
+          <li>Full lifecycle gas 676,426 to 630,020. Saving 6.86 percent.</li>
+          <li>State fields share one slot. _sync() returns status to avoid a second read.</li>
+          <li>Exact-half veto boundary tested. Five of ten ETH cannot cancel.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="explain notes">
+      <h3>Notes</h3>
+      <p>In the demo, a donor calls <span class="mono">release(0)</span>. The creator does not. No admin role exists.</p>
+    </div>
+  </section>
+</div>
+
+
+<div class="controls" role="group" aria-label="Slide controls">
+  <button id="prev" type="button" aria-label="Previous slide">Previous</button>
+  <button id="next" type="button" aria-label="Next slide">Next</button>
+  <span class="count" id="count" aria-hidden="true">01 / 07</span>
+  <div class="bar" id="bar" aria-hidden="true"></div>
+  <button id="notes" type="button" aria-pressed="true" aria-label="Toggle explanations">Notes</button>
+  <button id="print" type="button" aria-label="Print all slides">Print</button>
+  <span class="status" id="status" aria-live="polite"></span>
+</div>
+
+<script>
+// One monochrome ordered screen, shared by the progress bar and hover states.
+(function (root) {
+  'use strict';
+
+  const BAYER = [
+    [0, 8, 2, 10],
+    [12, 4, 14, 6],
+    [3, 11, 1, 9],
+    [15, 7, 13, 5]
+  ];
+
+  function tile(level) {
+    const c = document.createElement('canvas');
+    c.width = 4;
+    c.height = 4;
+    const ctx = c.getContext('2d');
+    const im = ctx.createImageData(4, 4);
+    const n = Math.max(0, Math.min(16, Math.round(level)));
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        const o = (y * 4 + x) * 4;
+        const on = BAYER[y][x] < n;
+        const v = on ? 17 : 255;
+        im.data[o] = v;
+        im.data[o + 1] = v;
+        im.data[o + 2] = v;
+        im.data[o + 3] = 255;
+      }
+    }
+    ctx.putImageData(im, 0, 0);
+    return c;
+  }
+
+  function screen(level) {
+    return 'url("' + tile(level).toDataURL('image/png') + '")';
+  }
+
+  root.PRESS = { BAYER, tile, screen };
+})(window);
+</script>
+<script>
+(function () {
+  'use strict';
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const count = document.getElementById('count');
+  const status = document.getElementById('status');
+  const bar = document.getElementById('bar');
+  let index = 0;
+  let notesOn = true;
+
+  slides.forEach(function () {
+    const tick = document.createElement('span');
+    bar.appendChild(tick);
+  });
+
+  function show(next) {
+    index = Math.max(0, Math.min(slides.length - 1, next));
+    slides.forEach(function (slide, i) { slide.hidden = i !== index; });
+    Array.from(bar.children).forEach(function (tick, i) {
+      tick.className = i === index ? 'on' : '';
+    });
+    count.textContent = String(index + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+    status.textContent = slides[index].dataset.title;
+    window.scrollTo(0, 0);
+  }
+
+  document.getElementById('prev').addEventListener('click', function () { show(index - 1); });
+  document.getElementById('next').addEventListener('click', function () { show(index + 1); });
+  document.getElementById('print').addEventListener('click', function () { window.print(); });
+  document.getElementById('notes').addEventListener('click', function (event) {
+    notesOn = !notesOn;
+    document.querySelectorAll('.notes').forEach(function (node) { node.hidden = !notesOn; });
+    event.currentTarget.setAttribute('aria-pressed', String(notesOn));
+  });
+
+  document.addEventListener('keydown', function (event) {
+    const tag = event.target && event.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') {
+      event.preventDefault(); show(index + 1);
+    } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+      event.preventDefault(); show(index - 1);
+    } else if (event.key === 'Home') {
+      event.preventDefault(); show(0);
+    } else if (event.key === 'End') {
+      event.preventDefault(); show(slides.length - 1);
+    }
+  });
+
+  document.documentElement.style.setProperty('--screen-a', PRESS.screen(5));
+  show(0);
+})();
+</script>
+
+</body>
+</html>

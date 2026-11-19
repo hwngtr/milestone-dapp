@@ -34,7 +34,6 @@ digraph campaign_lifecycle {
   failed    [label=<<B>Failed</B><BR/><FONT POINT-SIZE="9">goal missed: refund anyone, forever</FONT>>, fillcolor="#FDECEC", color="#B42318"];
   active    [label=<<B>Active</B><BR/><FONT POINT-SIZE="9">goal reached, milestones begin</FONT>>, fillcolor="#EDF6F1", color="#0B6B4F"];
   challenge [label=<<B>Challenge window</B><BR/><FONT POINT-SIZE="9">creator marked delivered; donors may object</FONT>>, fillcolor="#FFF7E6", color="#B45309"];
-  challenge -> canceled [label=" quorum objects: milestone vetoed "];
   canceled   [label=<<B>Canceled</B><BR/><FONT POINT-SIZE="9">veto ended the campaign; all funds pull-refundable</FONT>>, fillcolor="#FFF1E6", color="#B45309"];
   released  [label=<<B>Milestone released</B><BR/><FONT POINT-SIZE="9">creator credit grows; back to Active for the next one</FONT>>, fillcolor="#EDF6F1", color="#0B6B4F"];
   done      [label=<<B>Completed</B><BR/><FONT POINT-SIZE="9">every milestone paid</FONT>>, fillcolor="#EDF6F1", color="#0B6B4F"];
