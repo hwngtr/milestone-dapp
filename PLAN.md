@@ -15,7 +15,7 @@ The graded package is three artifacts, not code:
 
 Supporting material that makes the three artifacts credible:
 
-- `scripts/cost_model.py`, produces every cost number; re-run to change assumptions.
+- `docs/cost-model-output.md` and `data/cost-model.csv`, the generated cost numbers and raw data.
 - `docs/04-security-preview.md`, threat table for the contract design.
 - `contracts/interfaces/`, Solidity interfaces that pin the API the architecture assumes.
 

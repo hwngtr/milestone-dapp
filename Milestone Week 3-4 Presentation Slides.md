@@ -15,6 +15,8 @@ kind: slides
 **Print-style HTML deck:** `Individual Project/slides/code-demo-print.html`. One self-contained file. Monochrome paper and ink. The dither code is inline. Navigation by arrow keys, space, Home, End, and buttons. Print button emits one slide per page.
 **Pele diagrams:** `slides/diagrams/state-machine.mmd` and `factory-clone.mmd`. I rendered both to SVG with `pele-render` and monochrome variables, then inlined the SVGs into the deck. Both diagrams are full slides at positions 5 and 8. Next and back reach them in sequence. You need no click and no zoom.
 
+**Local-only sources.** The `slides/` and `scripts/` folders stay on this machine. They are not part of the repository submission. The finished PPTX and the generated reports are in the repo.
+
 ---
 
 ## Slide 1: Files shown in this talk (0:00-0:15)

@@ -72,7 +72,7 @@ public, and expensive. Anyone who rejects that judgement should reject the proje
 ## Cost, quantified
 
 Assumptions: ETH $3,000, L1 gas 10 gwei, L2 0.05 gwei, 40 donors x $50, 3 milestones. Generated
-by `scripts/cost_model.py`.
+by the cost model on the author's machine. The generator is not part of this submission.
 
 | Design | L1 total | Share of funds | L2 total | Share of funds |
 |---|---:|---:|---:|---:|

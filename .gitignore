@@ -11,3 +11,5 @@ broadcast/
 *.vrb
 __pycache__/
 *.pyc
+slides/
+scripts/

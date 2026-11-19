@@ -23,16 +23,15 @@ Start with `SUBMISSION.md` for the list of files to open and the commands to run
 | `deploy/demo.sh` | `make demo`: the full lifecycle on a fresh Anvil node, one command |
 | `PLAN.md` | Week-by-week plan and status |
 
-Week 1–2 submission package: `Submission-v2.pdf`. Week 1–2 slides: `slides/milestone.tex` →
-`slides/milestone.pdf`.
+Week 1-2 submission package: `Submission-v2.pdf`. Week 3-4 presentation: `milestone-week3-4-code-demo.pptx`.
 
 Supporting material:
 
 | Path | Purpose |
 |---|---|
-| `scripts/cost_model.py` | Generates every cost figure. Change assumptions, re-run, documents follow |
-| `scripts/decision_matrix.py` | Weighted comparison plus the sensitivity test that flips the winner |
-| `scripts/export_deliverable.py` | Concatenates the docs into one markdown for Obsidian |
+| `docs/cost-model-output.md` | Cost figures used in the report |
+| `docs/decision-matrix-output.md` | Weighted comparison and sensitivity test |
+| `data/cost-model.csv` | Raw cost-model data |
 | `diagrams/*.dot` | Graphviz sources; `*.png` and `*.svg` are rendered from them |
 | `contracts/interfaces/` | The pinned public API, implemented by the Week 3 contracts |
 
@@ -47,19 +46,11 @@ make anvil         # local node on 127.0.0.1:8545 (separate terminal)
 make deploy-local  # deploy the factory to Anvil with anvil's default account
 ```
 
-The Foundry project root is this directory: contracts live in `contracts/`, tests in `tests/`,
-deploy scripts in `deploy/` (python scripts stay in `scripts/`).
+The Foundry project root is this directory. Contracts live in `contracts/`, tests in `tests/`, and
+deployment scripts in `deploy/`.
 
-## Rebuild the numbers and diagrams
-
-```bash
-python3 scripts/cost_model.py          # -> docs/cost-model-output.md, data/cost-model.csv
-python3 scripts/decision_matrix.py     # -> docs/decision-matrix-output.md
-
-cd diagrams
-for f in *.dot; do dot -Tsvg "$f" -o "${f%.dot}.svg"; dot -Tpng -Gdpi=200 "$f" -o "${f%.dot}.png"; done
-cd ..
-```
+The cost figures and diagram images are committed as generated files. The generators stay on the
+author's machine and are not part of this submission. Graphviz sources remain in `diagrams/`.
 
 ## The three numbers to remember
 

@@ -43,10 +43,9 @@ The savings stop at the cost of the storage writes that remain. Each state-chang
 export PATH="$PATH:$HOME/.foundry/bin"
 make test
 forge snapshot --check
-python3 scripts/gas_compare.py docs/gas-snapshot-baseline.txt .gas-snapshot
 ```
 
-The comparison script parses the two snapshot files and prints totals, the largest savings, regressions, and the median relative change.
+The baseline and result snapshots are both in the repo. The comparison script stays on the author's machine and is not part of this submission.
 
 ## What remains in Week 4
 
